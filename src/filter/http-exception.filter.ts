@@ -22,7 +22,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
         const request = ctx.getRequest<Request>();
         const status = exception.getStatus();
 
-        let errorMessage: any = exception.getResponse();
+        let errorMessage = exception.getResponse() as
+            | string
+            | { message: string, statusCode: number };
         if (typeof errorMessage === "object") {
             errorMessage = errorMessage.message;
         }
