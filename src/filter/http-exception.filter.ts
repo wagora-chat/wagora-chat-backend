@@ -34,15 +34,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
         if (isCustomErrorResponseType(errorResponse)) {
             errorMessage = errorResponse.message;
-            code=errorResponse.errorCode;
+            code = errorResponse.errorCode;
         } else if (isDefaultErrorResponseType(errorResponse)) {
             errorMessage = errorResponse.message;
-            code= ErrorCode.DEFAULT_F001;
+            code = ErrorCode.DEFAULT_F001;
         } else {
             errorMessage = errorResponse;
-            code= ErrorCode.UNKNOWN_F001;
+            code = ErrorCode.UNKNOWN_F001;
         }
-
         this.logger.error(
             `Error Occur ${request.url} ${request.method}, errorMessage: ${JSON.stringify(errorMessage, null, 2)}`,
         );
