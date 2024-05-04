@@ -2,8 +2,7 @@ import {
     Request, Response,
 } from "express";
 import {
-    ArgumentsHost,
-    Catch, ExceptionFilter, HttpException, HttpStatus, Logger,
+    ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger,
 } from "@nestjs/common";
 import {
     ErrorData,
@@ -11,8 +10,15 @@ import {
 import {
     ErrorObject,
 } from "../exception/error-object";
+import {
+    ErrorResponseType, isCustomErrorResponseType, isDefaultErrorResponseType,
+} from "../exception/error-type";
+import {
+    ErrorCode,
+} from "../exception/error-code.enum";
 
 @Catch(HttpException)
+
 export class HttpExceptionFilter implements ExceptionFilter {
     private readonly logger = new Logger(HttpExceptionFilter.name);
 
@@ -22,13 +28,20 @@ export class HttpExceptionFilter implements ExceptionFilter {
         const request = ctx.getRequest<Request>();
         const status = exception.getStatus();
 
-        let errorMessage = exception.getResponse() as
-            | string
-            | { message: string, statusCode: number };
-        if (typeof errorMessage === "object") {
-            errorMessage = errorMessage.message;
-        }
+        const errorResponse = exception.getResponse() as ErrorResponseType;
+        let errorMessage: string;
+        let code: ErrorCode;
 
+        if (isCustomErrorResponseType(errorResponse)) {
+            errorMessage = errorResponse.message;
+            code = errorResponse.errorCode;
+        } else if (isDefaultErrorResponseType(errorResponse)) {
+            errorMessage = errorResponse.message;
+            code = ErrorCode.DEFAULT_F001;
+        } else {
+            errorMessage = errorResponse;
+            code = ErrorCode.UNKNOWN_F001;
+        }
         this.logger.error(
             `Error Occur ${request.url} ${request.method}, errorMessage: ${JSON.stringify(errorMessage, null, 2)}`,
         );
@@ -40,6 +53,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
             error: HttpStatus[status],
         };
         const errorData: ErrorData = {
+            code: code,
             data: errorObject,
             timestamp: new Date().toISOString(),
         };

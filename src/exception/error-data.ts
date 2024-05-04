@@ -1,9 +1,12 @@
 import {
     ErrorObject,
 } from "./error-object";
+import {
+    ErrorCode,
+} from "./error-code.enum";
 
 export interface ErrorData {
-    // TODO: ErrorCode 정책 정하면 추가
+    code: ErrorCode,
     data: ErrorObject,
     timestamp: string
 }

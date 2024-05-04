@@ -3,10 +3,10 @@ import {
 } from "@prisma/client";
 
 export class MemberEntity implements Member {
-    constructor(private id: bigint,
-                private email: string,
-                private nickname: string,
-                private password: string,
-                private profile: string) {
+    constructor(readonly id: bigint,
+                readonly email: string,
+                readonly nickname: string,
+                readonly password: string,
+                readonly profile: string) {
     }
 }
