@@ -25,13 +25,6 @@ export class AuthController {
     constructor(private readonly emailService: EmailService) {
     }
 
-    @Get("/auth/:email")
-    async emailTransfer(@Param("email") email: string) {
-        await this.emailService.sendEmail(email);
-
-        return 200;
-    }
-
     @Post("/emails")
     async transferValidateCode(@Body() request: SendCodeToEmailRequest) {
         const result = await this.emailService.transferValidateCode(request);

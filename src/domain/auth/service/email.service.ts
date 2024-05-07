@@ -53,19 +53,10 @@ export class EmailService {
         
     }
 
-    async sendEmail(email: string): Promise<void> {
-        const emailOptions: EmailOptions = {
-            from: this.configService.get("EMAIL_ACCOUNT") as string,
-            to: email,
-            subject: "^_^ Hello Wagora",
-            html: "<h1> 와고라에 오신걸 환영합니다. </h1> <p>테스트용 메일입니다.</p>",
-        };
-        await this.transporter.sendMail(emailOptions);
-
-        return;
-    }
-
-    // email Sending API 구현
+    /**
+     * validate code를 요청한 email로 전송
+     * @param request
+     */
     async transferValidateCode(request: SendCodeToEmailRequest) {
         // HACK: 비동기 동작 건의
         const code = generateRandomNumber().toString();

@@ -1,6 +1,12 @@
+import {
+    ErrorData,
+} from "./error-data";
+import {
+    ResponseCode,
+} from "./error-code.enum";
+
 export interface ErrorObject {
-    status: number;
-    error: string;
-    path: string;
-    message: string;
+    code: ResponseCode,
+    data: ErrorData,
+    timestamp: string
 }

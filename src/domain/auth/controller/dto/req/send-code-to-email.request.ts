@@ -1,3 +1,5 @@
 export class SendCodeToEmailRequest {
-    email: string;
+    constructor(readonly email: string) {
+    }
+
 }

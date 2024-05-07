@@ -1,4 +1,7 @@
 export class VerifyCodeEmailRequest {
-    email: string;
-    code: string;
+    constructor(
+        readonly email: string,
+        readonly code: string
+    ) {
+    }
 }

@@ -5,11 +5,11 @@ import {
     ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger,
 } from "@nestjs/common";
 import {
-    ErrorData,
-} from "../exception/error-data";
-import {
     ErrorObject,
 } from "../exception/error-object";
+import {
+    ErrorData,
+} from "../exception/error-data";
 import {
     ErrorResponseType, isCustomErrorResponseType, isDefaultErrorResponseType,
 } from "../exception/error-type";
@@ -46,13 +46,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
             `Error Occur ${request.url} ${request.method}, errorMessage: ${JSON.stringify(errorMessage, null, 2)}`,
         );
 
-        const errorObject: ErrorObject = {
+        const errorObject: ErrorData = {
             status: status,
             message: errorMessage,
             path: request.url,
             error: HttpStatus[status],
         };
-        const errorData: ErrorData = {
+        const errorData: ErrorObject = {
             code: code,
             data: errorObject,
             timestamp: new Date().toISOString(),
