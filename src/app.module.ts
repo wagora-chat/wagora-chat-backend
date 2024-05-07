@@ -7,9 +7,12 @@ import {
 import {
     AppService,
 } from "./app.service";
+import AuthModule from "./domain/auth/auth.module";
+import PrismaModule from "./prisma/prisma.module";
 
 @Module({
-    imports: [],
+    imports: [AuthModule,
+        PrismaModule,],
     controllers: [AppController,],
     providers: [AppService,],
 })
