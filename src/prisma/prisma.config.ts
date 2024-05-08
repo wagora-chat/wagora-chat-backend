@@ -1,6 +1,5 @@
 import {
-    INestApplication,
-    Injectable, OnModuleInit,
+    INestApplication, Injectable, OnModuleInit,
 } from "@nestjs/common";
 
 import {

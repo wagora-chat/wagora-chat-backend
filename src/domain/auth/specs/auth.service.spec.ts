@@ -39,11 +39,11 @@ describe("AuthService", () => {
     const member = MemberEntityGenerator.member();
 
     describe("Signup", () => {
-        it("should be defined", async () => {
+        it("AuthService의 인스턴스가 정상적으로 정의되어야 한다.", async () => {
             expect(authService).toBeDefined();
         });
 
-        it("should return new member id", async () => {
+        it("새로운 회원의 아이디가 생성되어야 한다.", async () => {
             prismaMock.member.findUnique.mockResolvedValue(null);
             prismaMock.member.create.mockResolvedValue(member);
 
@@ -53,7 +53,7 @@ describe("AuthService", () => {
             expect(result.id).toBe(member.id.toString());
         });
 
-        it("should throw duplicate property exception when request exists email", async () => {
+        it("이미 존재하는 이메일에 대해 에러를 발생시킨다.", async () => {
             prismaMock.member.findUnique.mockResolvedValue(member);
 
             try {

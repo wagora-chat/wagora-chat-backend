@@ -8,7 +8,7 @@ import SignupResponseDto from "./dto/res/signup.response.dto";
 import {
     ResponseCode,
 } from "../../response/response-code.enum";
-import ResponseData from "../../response/response-data";
+import Response from "../../response/response";
 
 @Controller("/auth")
 export default class AuthController {
@@ -17,10 +17,10 @@ export default class AuthController {
     @Post("/signup")
     async signup(
         @Body(CheckPasswordPipe) body: SignupRequestDto
-    ): Promise<ResponseData<SignupResponseDto>> {
+    ): Promise<Response<SignupResponseDto>> {
         const data: SignupResponseDto = await this.authService.signup(body);
 
-        return new ResponseData<SignupResponseDto>(
+        return new Response<SignupResponseDto>(
             ResponseCode.AUTH_S001, data
         );
     }

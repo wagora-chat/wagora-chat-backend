@@ -5,6 +5,7 @@ import SignupRequestDto from "./dto/req/signup.request.dto";
 import {
     Member, PrismaClient,
 } from "@prisma/client";
+import * as bcrypt from "bcrypt";
 import {
     DuplicateEmailException,
 } from "../../exception/http/duplicate-email.exception";
@@ -47,7 +48,7 @@ export default class AuthService {
         const member: Member = await this.prisma.member.create({
             data: {
                 email: signupRequestDto.email,
-                password: signupRequestDto.password,
+                password: await bcrypt.hash(signupRequestDto.password, 10),
                 nickname: signupRequestDto.nickname,
                 profile: signupRequestDto.profile,
             },
