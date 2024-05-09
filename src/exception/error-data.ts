@@ -2,11 +2,11 @@ import {
     ErrorObject,
 } from "./error-object";
 import {
-    ErrorCode,
+    ResponseCode,
 } from "./error-code.enum";
 
 export interface ErrorData {
-    code: ErrorCode,
+    code: ResponseCode,
     data: ErrorObject,
     timestamp: string
 }

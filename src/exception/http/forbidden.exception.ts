@@ -5,11 +5,11 @@ import {
     ResponseCode,
 } from "../error-code.enum";
 
-export class NotFoundException extends HttpException {
+export class ForbiddenException extends HttpException {
     constructor(value: string, errorCode: ResponseCode) {
         super({
-            message: `${value} Not Found`,
+            message: `${value} Forbidden`,
             errorCode: errorCode,
-        }, HttpStatus.NOT_FOUND);
+        }, HttpStatus.FORBIDDEN);
     }
 }

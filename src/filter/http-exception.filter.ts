@@ -14,7 +14,7 @@ import {
     ErrorResponseType, isCustomErrorResponseType, isDefaultErrorResponseType,
 } from "../exception/error-type";
 import {
-    ErrorCode,
+    ResponseCode,
 } from "../exception/error-code.enum";
 
 @Catch(HttpException)
@@ -30,17 +30,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
         const errorResponse = exception.getResponse() as ErrorResponseType;
         let errorMessage: string;
-        let code: ErrorCode;
+        let code: ResponseCode;
 
         if (isCustomErrorResponseType(errorResponse)) {
             errorMessage = errorResponse.message;
             code = errorResponse.errorCode;
         } else if (isDefaultErrorResponseType(errorResponse)) {
             errorMessage = errorResponse.message;
-            code = ErrorCode.DEFAULT_F001;
+            code = ResponseCode.DEFAULT_F001;
         } else {
             errorMessage = errorResponse;
-            code = ErrorCode.UNKNOWN_F001;
+            code = ResponseCode.UNKNOWN_F001;
         }
         this.logger.error(
             `Error Occur ${request.url} ${request.method}, errorMessage: ${JSON.stringify(errorMessage, null, 2)}`,
