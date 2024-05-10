@@ -1,4 +1,4 @@
-export class VerifyCodeEmailRequest {
+export class VerifyCodeEmailRequestDto {
     constructor(
         readonly email: string,
         readonly code: string

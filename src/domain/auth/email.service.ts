@@ -10,26 +10,26 @@ import {
     InjectRedis,
 } from "@liaoliaots/nestjs-redis";
 import {
-    SendCodeToEmailRequest,
-} from "../controller/dto/req/send-code-to-email.request";
+    SendCodeToEmailRequestDto,
+} from "./dto/req/send-code-to-email.request.dto";
 import {
     generateRandomNumber,
-} from "../../../util/random.function";
+} from "../../util/random.function";
 import {
-    SendCodeToEmailResponseData,
-} from "../controller/dto/res/send-code-to-email.response";
-import {
-    VerifyCodeEmailRequest,
-} from "../controller/dto/req/verify-code-email-request";
+    VerifyCodeEmailRequestDto,
+} from "./dto/req/verify-code-email.request.dto";
 import {
     AuthEmailConfirmException,
-} from "../../../exception/auth-email-confirm.exception";
+} from "../../exception/auth-email-confirm.exception";
 import {
     ResponseCode,
-} from "../../../exception/error-code.enum";
+} from "../../response/response-code.enum";
 import {
-    VerifyCodeEmailResponseData,
-} from "../controller/dto/res/verify-code-email.response";
+    SendCodeToEmailResponseDto,
+} from "./dto/res/send-code-to-email.response.dto";
+import {
+    VerifyCodeEmailResponseDto,
+} from "./dto/res/verify-code-email.response.dto";
 
 interface EmailOptions {
     from: string;
@@ -57,11 +57,11 @@ export class EmailService {
      * validate code를 요청한 email로 전송
      * @param request
      */
-    async transferValidateCode(request: SendCodeToEmailRequest) {
+    async transferValidateCode(request: SendCodeToEmailRequestDto) {
         // HACK: 비동기 동작 건의
         const code = generateRandomNumber().toString();
         // 1-email에 해당하는 code를 radis로 저장
-        await this.client.set(request.email, code);
+        await this.client.set(request.email, code,);
 
         // 2-email에 해당하는 code를 email로 전송
         const emailOptions: EmailOptions = {
@@ -72,10 +72,10 @@ export class EmailService {
         };
         await this.transporter.sendMail(emailOptions);
 
-        return new SendCodeToEmailResponseData(request.email);
+        return new SendCodeToEmailResponseDto(request.email);
     }
 
-    async confirmValidateCode(request: VerifyCodeEmailRequest) {
+    async confirmValidateCode(request: VerifyCodeEmailRequestDto) {
         const resultCode = await this.client.get(request.email);
 
         if (resultCode === null || resultCode !== request.code) {
@@ -84,7 +84,7 @@ export class EmailService {
 
         await this.client.del(request.email);
 
-        return new VerifyCodeEmailResponseData(
+        return new VerifyCodeEmailResponseDto(
             request.email
         );
 

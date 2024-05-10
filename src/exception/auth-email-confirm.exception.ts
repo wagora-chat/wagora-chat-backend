@@ -3,7 +3,7 @@ import {
 } from "./http/forbidden.exception";
 import {
     ResponseCode,
-} from "./error-code.enum";
+} from "../response/response-code.enum";
 
 export class AuthEmailConfirmException extends ForbiddenException {
     constructor(value: string, errorCode: ResponseCode) {

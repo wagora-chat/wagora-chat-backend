@@ -7,7 +7,7 @@ import {
 } from "../../../prisma/prisma.config";
 import {
     DuplicateEmailException,
-} from "../../../exception/http/duplicate-email.exception";
+} from "../../../exception/duplicate-email.exception";
 import SignupDtoGenerator from "./signup-dto.generator";
 import MemberEntityGenerator from "./member-entity.generator";
 

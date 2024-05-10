@@ -1,4 +1,4 @@
-export interface ErrorData {
+export interface ErrorDataDto {
     status: number;
     error: string;
     path: string;

@@ -2,14 +2,14 @@ import {
     ConflictException,
 } from "@nestjs/common";
 import {
-    ErrorCode,
-} from "../error-code.enum";
+    ResponseCode,
+} from "../response/response-code.enum";
 
 export class DuplicateNicknameException extends ConflictException {
     constructor() {
         super({
             message: "Nickname is Duplicated",
-            errorCode: ErrorCode.AUTH_F002,
+            errorCode: ResponseCode.AUTH_F002,
         });
     }
 }

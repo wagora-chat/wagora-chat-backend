@@ -1,3 +1,11 @@
 export enum ResponseCode {
-    AUTH_S001 = "AUTH-S001"
+    UNKNOWN_F001 = "UNKNOWN-F001",
+    DEFAULT_F001 = "DEFAULT-F001",
+    AUTH_F001 = "AUTH-F001",
+    AUTH_F002 = "AUTH-F002",
+    AUTH_F003 = "AUTH-F003",
+    AUTH_S001 = "AUTH-S001",
+    AUTH_S002 = "AUTH-S002",
+    AUTH_S003 = "AUTH-S003",
+
 }

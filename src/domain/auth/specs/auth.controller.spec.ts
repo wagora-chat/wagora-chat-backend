@@ -7,9 +7,16 @@ import SignupDtoGenerator from "./signup-dto.generator";
 import {
     ResponseCode,
 } from "../../../response/response-code.enum";
+import {
+    EmailService,
+} from "../email.service";
 
-const serviceMock = {
+const authServiceMock = {
     signup: jest.fn(),
+};
+const emailServiceMock = {
+    transferValidateCode: jest.fn(),
+    confirmValidateCode: jest.fn(),
 };
 
 describe("AuthController", () => {
@@ -20,8 +27,13 @@ describe("AuthController", () => {
             controllers: [AuthController,],
             providers: [{
                 provide: AuthService,
-                useValue: serviceMock,
-            },],
+                useValue: authServiceMock,
+            },
+            {
+                provide: EmailService,
+                useValue: emailServiceMock,
+            },
+            ],
         }).compile();
 
         authController = module.get(AuthController);
@@ -36,7 +48,7 @@ describe("AuthController", () => {
         });
 
         it("성공 코드와 함께 새로 생성된 회원의 ID가 반환된다.", async () => {
-            serviceMock.signup.mockResolvedValue(response);
+            authServiceMock.signup.mockResolvedValue(response);
 
             const result = await authController.signup(signupRequestDto);
 

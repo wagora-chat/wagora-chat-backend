@@ -9,21 +9,11 @@ import {
     HttpExceptionFilter,
 } from "../../../src/filter/http-exception.filter";
 import {
-    ForbiddenException,
     HttpStatus,
     INestApplication,
 } from "@nestjs/common";
 import Redis from "ioredis";
 import * as request from "supertest";
-import {
-    SendCodeToEmailRequest,
-} from "../../../src/domain/auth/controller/dto/req/send-code-to-email.request";
-import {
-    SendCodeToEmailResponse,
-} from "../../../src/domain/auth/controller/dto/res/send-code-to-email.response";
-import {
-    ResponseCode,
-} from "../../../src/exception/error-code.enum";
 import {
     getRedisToken,
     RedisModule,
@@ -32,17 +22,18 @@ import {
     AppModule,
 } from "../../../src/app.module";
 import {
-    VerifyCodeEmailRequest,
-} from "../../../src/domain/auth/controller/dto/req/verify-code-email-request";
+    VerifyCodeEmailRequestDto,
+} from "../../../src/domain/auth/dto/req/verify-code-email.request.dto";
 import {
-    VerifyCodeEmailResponse,
-} from "../../../src/domain/auth/controller/dto/res/verify-code-email.response";
+    VerifyCodeEmailResponseDto,
+} from "../../../src/domain/auth/dto/res/verify-code-email.response.dto";
 import {
-    ErrorData,
-} from "../../../src/exception/error-data";
+    ResponseCode,
+} from "../../../src/response/response-code.enum";
+import CustomResponse from "../../../src/response/custom-response";
 import {
-    ErrorObject,
-} from "../../../src/exception/error-object";
+    ErrorDataDto,
+} from "../../../src/response/error-data.dto";
 
 describe("Auth Test (e2e)", () => {
     let app: INestApplication<any>;
@@ -105,7 +96,7 @@ describe("Auth Test (e2e)", () => {
             const expectedUserEmail = "test1234@gmail.com";
             const expectedCode = "123456";
             await redisClient.set(expectedUserEmail, expectedCode);
-            const requestBody = new VerifyCodeEmailRequest(expectedUserEmail, expectedCode);
+            const requestBody = new VerifyCodeEmailRequestDto(expectedUserEmail, expectedCode);
 
             // when
             const response = await request(app.getHttpServer())
@@ -114,7 +105,7 @@ describe("Auth Test (e2e)", () => {
                 .expect(HttpStatus.CREATED);
 
             // then
-            const actual = response.body as VerifyCodeEmailResponse;
+            const actual = response.body as CustomResponse<VerifyCodeEmailResponseDto>;
             expect(actual.code).toBe(ResponseCode.AUTH_S003);
             expect(actual.data.email).toBe(expectedUserEmail);
         });
@@ -126,7 +117,7 @@ describe("Auth Test (e2e)", () => {
             const expectedPath = "/auth/emails/confirm";
             await redisClient.set(expectedUserEmail, expectedCode);
             const invalidCode = "654321";
-            const requestBody = new VerifyCodeEmailRequest(expectedUserEmail, invalidCode);
+            const requestBody = new VerifyCodeEmailRequestDto(expectedUserEmail, invalidCode);
 
             // when
             const response = await request(app.getHttpServer())
@@ -135,7 +126,7 @@ describe("Auth Test (e2e)", () => {
                 .expect(HttpStatus.FORBIDDEN);
 
             // then
-            const actual = response.body as ErrorObject;
+            const actual = response.body as CustomResponse<ErrorDataDto>;
             expect(actual.code).toBe(ResponseCode.AUTH_F003);
             expect(actual.data.path).toBe(expectedPath);
         });
@@ -145,7 +136,7 @@ describe("Auth Test (e2e)", () => {
             const expectedUserEmail = "test1234@gmail.com";
             const expectedPath = "/auth/emails/confirm";
             const invalidCode = "654321";
-            const requestBody = new VerifyCodeEmailRequest(expectedUserEmail, invalidCode);
+            const requestBody = new VerifyCodeEmailRequestDto(expectedUserEmail, invalidCode);
 
             // when
             const response = await request(app.getHttpServer())
@@ -154,7 +145,7 @@ describe("Auth Test (e2e)", () => {
                 .expect(HttpStatus.FORBIDDEN);
 
             // then
-            const actual = response.body as ErrorObject;
+            const actual = response.body as CustomResponse<ErrorDataDto>;
             expect(actual.code).toBe(ResponseCode.AUTH_F003);
             expect(actual.data.path).toBe(expectedPath);
         });

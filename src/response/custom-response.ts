@@ -2,11 +2,11 @@ import {
     ResponseCode,
 } from "./response-code.enum";
 
-export default class Response<T> {
-    readonly timestamp: Date;
+export default class CustomResponse<T> {
+    readonly timestamp: string;
 
     constructor(readonly code: ResponseCode,
                 readonly data: T,) {
-        this.timestamp = new Date();
+        this.timestamp = new Date().toISOString();
     }
 }
