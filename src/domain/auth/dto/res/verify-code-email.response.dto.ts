@@ -1,4 +1,3 @@
 export class VerifyCodeEmailResponseDto {
-    constructor(readonly email: string) {
-    }
+    readonly email: string;
 }

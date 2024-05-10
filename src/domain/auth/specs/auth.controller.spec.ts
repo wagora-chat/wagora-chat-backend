@@ -72,7 +72,6 @@ describe("AuthController", () => {
 
             const result = await authController.transferValidateCode(sendCodeToEmailRequestDto);
 
-            console.log(result);
             expect(result).not.toBeNull();
             expect(result.data.email).toBe(sendCodeToEmailRequestDto.email);
             expect(result.code).toBe(ResponseCode.AUTH_S002);

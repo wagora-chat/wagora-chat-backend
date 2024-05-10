@@ -6,7 +6,7 @@ import {
 } from "../response/response-code.enum";
 
 export class AuthEmailConfirmException extends ForbiddenException {
-    constructor(value: string, errorCode: ResponseCode) {
-        super(value, errorCode);
+    constructor(errorCode: ResponseCode) {
+        super("Invalid Email", errorCode);
     }
 }

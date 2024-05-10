@@ -70,33 +70,16 @@ describe("Auth Test (e2e)", () => {
         await redisClient.reset();
     });
 
-    // TODO: email 전송과 같은 외부 요청을 포함하는 테스트 절차 논의
-    // describe("transferValidateCode Test", () => {
-    //     it("이메일 전송 요청이 오면, 해당 이메일을 전송하고 Redis에 이메일에 대한 Code를 저장해야 한다.", async () => {
-    //         // given
-    //         const requestBody = new SendCodeToEmailRequest(
-    //             "lxx3380@gmail.com"
-    //         );
-    //
-    //         // when
-    //         const response = await request(app.getHttpServer())
-    //             .post("/auth/emails")
-    //             .send(requestBody)
-    //             .expect(HttpStatus.CREATED);
-    //
-    //         // then
-    //         const actual = response.body as SendCodeToEmailResponse;
-    //         expect(actual.code).toBe(ResponseCode.AUTH_S002);
-    //     });
-    // });
-
     describe("confirmValidateCode Test", () => {
         it("해당 Email에 저장된 Code를 받으면 요청한 email을 반환한다.", async () => {
             // given
             const expectedUserEmail = "test1234@gmail.com";
             const expectedCode = "123456";
-            await redisClient.set(expectedUserEmail, expectedCode);
-            const requestBody = new VerifyCodeEmailRequestDto(expectedUserEmail, expectedCode);
+            await redisClient.set("validateEmail-"+expectedUserEmail, expectedCode);
+            const requestBody: VerifyCodeEmailRequestDto =  {
+                email: expectedUserEmail,
+                code: expectedCode,
+            };
 
             // when
             const response = await request(app.getHttpServer())
@@ -115,9 +98,12 @@ describe("Auth Test (e2e)", () => {
             const expectedUserEmail = "test1234@gmail.com";
             const expectedCode = "123456";
             const expectedPath = "/auth/emails/confirm";
-            await redisClient.set(expectedUserEmail, expectedCode);
+            await redisClient.set("validateEmail-"+expectedUserEmail, expectedCode);
             const invalidCode = "654321";
-            const requestBody = new VerifyCodeEmailRequestDto(expectedUserEmail, invalidCode);
+            const requestBody: VerifyCodeEmailRequestDto = {
+                email: expectedUserEmail,
+                code: invalidCode,
+            };
 
             // when
             const response = await request(app.getHttpServer())
@@ -136,8 +122,10 @@ describe("Auth Test (e2e)", () => {
             const expectedUserEmail = "test1234@gmail.com";
             const expectedPath = "/auth/emails/confirm";
             const invalidCode = "654321";
-            const requestBody = new VerifyCodeEmailRequestDto(expectedUserEmail, invalidCode);
-
+            const requestBody: VerifyCodeEmailRequestDto = {
+                email: expectedUserEmail,
+                code: invalidCode,
+            };
             // when
             const response = await request(app.getHttpServer())
                 .post("/auth/emails/confirm")

@@ -5,7 +5,7 @@ import {
     AppController,
 } from "./app.controller";
 import {
-    ConfigModule,
+    ConfigModule, ConfigService,
 } from "@nestjs/config";
 import {
     AppService,
@@ -16,7 +16,6 @@ import {
 import AuthModule from "./domain/auth/auth.module";
 import PrismaModule from "./prisma/prisma.module";
 
-
 @Module({
     imports: [
         AuthModule,
@@ -25,13 +24,19 @@ import PrismaModule from "./prisma/prisma.module";
             isGlobal: true,
             envFilePath: ".env",
         }),
-        RedisModule.forRoot({
-            readyLog: true,
-            config: {
-                host: "localhost",
-                port: 6379,
-            },
-        }),
+        RedisModule.forRootAsync(
+            {
+                imports: [ConfigModule,],
+                inject: [ConfigService,],
+                useFactory: (configService: ConfigService) => ({
+                    readyLog: true,
+                    config: {
+                        port: configService.get<number>("REDIS_PORT"),
+                        host: configService.get<string>("REDIS_HOST"),
+                    },
+                }),
+            }
+        ),
     ],
     controllers: [AppController,],
     providers: [AppService,],
