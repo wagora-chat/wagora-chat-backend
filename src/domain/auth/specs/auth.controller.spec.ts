@@ -10,6 +10,7 @@ import {
 import {
     EmailService,
 } from "../email.service";
+import SendCodeToEmailDtoGenerator from "./send-code-to-email-dto.generator";
 
 const authServiceMock = {
     signup: jest.fn(),
@@ -25,14 +26,15 @@ describe("AuthController", () => {
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
             controllers: [AuthController,],
-            providers: [{
-                provide: AuthService,
-                useValue: authServiceMock,
-            },
-            {
-                provide: EmailService,
-                useValue: emailServiceMock,
-            },
+            providers: [
+                {
+                    provide: AuthService,
+                    useValue: authServiceMock,
+                },
+                {
+                    provide: EmailService,
+                    useValue: emailServiceMock,
+                },
             ],
         }).compile();
 
@@ -40,7 +42,9 @@ describe("AuthController", () => {
     });
 
     const signupRequestDto = SignupDtoGenerator.request();
-    const response = SignupDtoGenerator.response();
+    const signupResponseDto = SignupDtoGenerator.response();
+    const sendCodeToEmailRequestDto = SendCodeToEmailDtoGenerator.request();
+    const sendCodeToEmailResponseDto = SendCodeToEmailDtoGenerator.response(sendCodeToEmailRequestDto.email);
 
     describe("Signup", () => {
         it("AuthController의 인스턴스가 정상적으로 정의되어야 한다.", async () => {
@@ -48,13 +52,30 @@ describe("AuthController", () => {
         });
 
         it("성공 코드와 함께 새로 생성된 회원의 ID가 반환된다.", async () => {
-            authServiceMock.signup.mockResolvedValue(response);
+            authServiceMock.signup.mockResolvedValue(signupResponseDto);
 
             const result = await authController.signup(signupRequestDto);
 
             expect(result).not.toBeNull();
-            expect(result.data.id).toBe(response.id);
+            expect(result.data.id).toBe(signupResponseDto.id);
             expect(result.code).toBe(ResponseCode.AUTH_S001);
+        });
+    });
+
+    describe("transferValidateCode", () => {
+        it("AuthController의 인스턴스가 정상적으로 정의되어야 한다.", async () => {
+            expect(authController).toBeDefined();
+        });
+
+        it("성공 코드와 생성된 회원의 Email이 반환된다.", async () => {
+            emailServiceMock.transferValidateCode.mockResolvedValue(sendCodeToEmailResponseDto);
+
+            const result = await authController.transferValidateCode(sendCodeToEmailRequestDto);
+
+            console.log(result);
+            expect(result).not.toBeNull();
+            expect(result.data.email).toBe(sendCodeToEmailRequestDto.email);
+            expect(result.code).toBe(ResponseCode.AUTH_S002);
         });
     });
 });

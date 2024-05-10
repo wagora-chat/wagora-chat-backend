@@ -58,12 +58,9 @@ export class EmailService {
      * @param request
      */
     async transferValidateCode(request: SendCodeToEmailRequestDto) {
-        // HACK: 비동기 동작 건의
         const code = generateRandomNumber().toString();
-        // 1-email에 해당하는 code를 radis로 저장
-        await this.client.set(request.email, code,);
 
-        // 2-email에 해당하는 code를 email로 전송
+        await this.client.set(request.email, code,);
         const emailOptions: EmailOptions = {
             from: this.configService.get("EMAIL_ACCOUNT") as string,
             to: request.email,
