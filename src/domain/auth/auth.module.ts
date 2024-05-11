@@ -1,6 +1,9 @@
 import {
     Module,
 } from "@nestjs/common";
+import {
+    EmailService,
+} from "./email.service";
 import AuthService from "./auth.service";
 import {
     PrismaConfig,
@@ -8,8 +11,11 @@ import {
 import AuthController from "./auth.controller";
 
 @Module({
+    imports: [],
+    exports: [],
     controllers: [AuthController,],
     providers: [AuthService,
-        PrismaConfig,],
+        PrismaConfig,
+        EmailService,],
 })
 export default class AuthModule {}

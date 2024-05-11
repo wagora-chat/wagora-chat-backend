@@ -8,14 +8,14 @@ import {
 import * as bcrypt from "bcrypt";
 import {
     DuplicateEmailException,
-} from "../../exception/http/duplicate-email.exception";
+} from "../../exception/duplicate-email.exception";
 import {
     PrismaConfig,
 } from "../../prisma/prisma.config";
 import SignupResponseDto from "./dto/res/signup.response.dto";
 import {
     DuplicateNicknameException,
-} from "../../exception/http/duplicate-nickname.exception";
+} from "../../exception/duplicate-nickname.exception";
 
 type ExistsMember = Member | null;
 

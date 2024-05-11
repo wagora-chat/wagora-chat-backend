@@ -5,17 +5,15 @@ import {
     ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger,
 } from "@nestjs/common";
 import {
-    ErrorData,
-} from "../exception/error-data";
+    ErrorDataDto,
+} from "../response/error-data.dto";
 import {
-    ErrorObject,
-} from "../exception/error-object";
+    ErrorExceptionType, isCustomErrorExceptionType, isDefaultErrorExceptionType,
+} from "../type-guard/exception.type-guard";
+import CustomResponse from "../response/custom-response";
 import {
-    ErrorResponseType, isCustomErrorResponseType, isDefaultErrorResponseType,
-} from "../exception/error-type";
-import {
-    ErrorCode,
-} from "../exception/error-code.enum";
+    ResponseCode,
+} from "../response/response-code.enum";
 
 @Catch(HttpException)
 
@@ -28,37 +26,35 @@ export class HttpExceptionFilter implements ExceptionFilter {
         const request = ctx.getRequest<Request>();
         const status = exception.getStatus();
 
-        const errorResponse = exception.getResponse() as ErrorResponseType;
+        const errorException = exception.getResponse() as ErrorExceptionType;
         let errorMessage: string;
-        let code: ErrorCode;
+        let code: ResponseCode;
 
-        if (isCustomErrorResponseType(errorResponse)) {
-            errorMessage = errorResponse.message;
-            code = errorResponse.errorCode;
-        } else if (isDefaultErrorResponseType(errorResponse)) {
-            errorMessage = errorResponse.message;
-            code = ErrorCode.DEFAULT_F001;
+        if (isCustomErrorExceptionType(errorException)) {
+            errorMessage = errorException.message;
+            code = errorException.errorCode;
+        } else if (isDefaultErrorExceptionType(errorException)) {
+            errorMessage = errorException.message;
+            code = ResponseCode.DEFAULT_F001;
         } else {
-            errorMessage = errorResponse;
-            code = ErrorCode.UNKNOWN_F001;
+            errorMessage = errorException;
+            code = ResponseCode.UNKNOWN_F001;
         }
         this.logger.error(
             `Error Occur ${request.url} ${request.method}, errorMessage: ${JSON.stringify(errorMessage, null, 2)}`,
         );
 
-        const errorObject: ErrorObject = {
+        const errorData: ErrorDataDto = {
             status: status,
             message: errorMessage,
             path: request.url,
             error: HttpStatus[status],
         };
-        const errorData: ErrorData = {
-            code: code,
-            data: errorObject,
-            timestamp: new Date().toISOString(),
-        };
+        const errorResponse= new CustomResponse<ErrorDataDto>(
+            code, errorData
+        );
 
-        response.status(status).json(errorData);
+        response.status(status).json(errorResponse);
     }
 
 }
