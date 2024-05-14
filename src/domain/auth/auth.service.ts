@@ -16,12 +16,18 @@ import SignupResponseDto from "./dto/res/signup.response.dto";
 import {
     DuplicateNicknameException,
 } from "../../exception/duplicate-nickname.exception";
+import {
+    InjectRedis,
+} from "@liaoliaots/nestjs-redis";
+import Redis from "ioredis";
+import NotValidatedEmailException from "../../exception/not-validated-email.exception";
 
 type ExistsMember = Member | null;
 
 @Injectable()
 export default class AuthService {
-    constructor(@Inject(PrismaConfig) private readonly prisma: PrismaClient) {
+    constructor(@Inject(PrismaConfig) private readonly prisma: PrismaClient,
+                @InjectRedis() private readonly client: Redis,) {
     }
 
     async signup(signupRequestDto: SignupRequestDto): Promise<SignupResponseDto> {
@@ -44,6 +50,12 @@ export default class AuthService {
         if (memberByNickname) {
             throw new DuplicateNicknameException();
         }
+
+        const validatedEmail: string | null = await this.client.get(signupRequestDto.email);
+        if (!validatedEmail) {
+            throw new NotValidatedEmailException();
+        }
+        await this.client.del(signupRequestDto.email);
 
         const member: Member = await this.prisma.member.create({
             data: {
