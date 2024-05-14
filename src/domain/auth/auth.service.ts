@@ -20,7 +20,7 @@ import {
     InjectRedis,
 } from "@liaoliaots/nestjs-redis";
 import Redis from "ioredis";
-import NotValidatedEmailException from "../../exception/not-validated-email.exception";
+import InvalidEmailException from "../../exception/invalid-email.exception";
 
 type ExistsMember = Member | null;
 
@@ -53,7 +53,7 @@ export default class AuthService {
 
         const validatedEmail: string | null = await this.client.get(signupRequestDto.email);
         if (!validatedEmail) {
-            throw new NotValidatedEmailException();
+            throw new InvalidEmailException();
         }
         await this.client.del(signupRequestDto.email);
 

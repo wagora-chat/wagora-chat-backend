@@ -8,7 +8,9 @@ import {
     ErrorDataDto,
 } from "../response/error-data.dto";
 import {
-    ErrorExceptionType, isCustomErrorExceptionType, isDefaultErrorExceptionType,
+    ErrorExceptionType,
+    isCustomErrorExceptionType,
+    isDefaultErrorExceptionType,
 } from "../type-guard/exception.type-guard";
 import CustomResponse from "../response/custom-response";
 import {
