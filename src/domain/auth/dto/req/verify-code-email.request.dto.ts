@@ -1,8 +1,17 @@
 import {
     IsEmail, IsNotEmpty, IsString, Length,
 } from "class-validator";
+import {
+    ApiProperty,
+} from "@nestjs/swagger";
 
 export class VerifyCodeEmailRequestDto {
+    @ApiProperty({
+        type: String,
+        description: "이메일",
+        required: true,
+        example: "test123@naver.com",
+    })
     @IsNotEmpty({
         message: "이메일은 비어있으면 안됩니다.",
     })
@@ -14,6 +23,12 @@ export class VerifyCodeEmailRequestDto {
     })
     readonly email: string;
 
+    @ApiProperty({
+        type: String,
+        description: "인증 코드",
+        required: true,
+        example: "102741",
+    })
     @IsNotEmpty({
         message: "인증번호는 비어있으면 안됩니다.",
     })
