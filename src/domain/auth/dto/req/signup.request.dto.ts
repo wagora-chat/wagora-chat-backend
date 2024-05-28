@@ -1,5 +1,5 @@
 import {
-    IsEmail, IsNotEmpty, IsString, IsUrl,
+    IsEmail, IsNotEmpty, IsString, IsUrl, Length, Matches,
 } from "class-validator";
 import {
     ApiProperty,
@@ -27,6 +27,9 @@ export default class SignupRequestDto {
         type: String,
         description: "비밀번호",
         required: true,
+        minLength: 8,
+        maxLength: 20,
+        pattern: "/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#~$*])[A-Za-z\d!@#~$*]{8,20}$/",
         example: "test123!@",
     })
     @IsNotEmpty({
@@ -34,6 +37,9 @@ export default class SignupRequestDto {
     })
     @IsString({
         message: "비밀번호는 문자열이어야 합니다.",
+    })
+    @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#~$*])[A-Za-z\d!@#~$*]{8,20}$/, {
+        message: "비밀번호 형식이 만족하지 않습니다.",
     })
     readonly password: string;
 
@@ -55,6 +61,9 @@ export default class SignupRequestDto {
         type: String,
         description: "닉네임",
         required: true,
+        minLength: 2,
+        maxLength: 10,
+        pattern: "/^[가-힣a-zA-Z0-9]{2,10}$/",
         example: "테스트_닉네임",
     })
     @IsNotEmpty({
@@ -62,6 +71,9 @@ export default class SignupRequestDto {
     })
     @IsString({
         message: "닉네임은 문자열이어야 합니다.",
+    })
+    @Matches(/^[가-힣a-zA-Z0-9]{2,10}$/, {
+        message: "닉네임이 형식을 만족하지 않습니다.",
     })
     readonly nickname: string;
 
