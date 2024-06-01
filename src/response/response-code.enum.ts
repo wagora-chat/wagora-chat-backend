@@ -8,5 +8,6 @@ export enum ResponseCode {
     AUTH_S001 = "AUTH-S001",
     AUTH_S002 = "AUTH-S002",
     AUTH_S003 = "AUTH-S003",
+    FILE_S001 = "FILE-S001",
 
 }
