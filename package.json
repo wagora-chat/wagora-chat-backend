@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.588.0",
     "@faker-js/faker": "^8.4.1",
     "@liaoliaots/nestjs-redis": "^9.0.5",
     "@nestjs/common": "^10.0.0",
@@ -28,6 +29,9 @@
     "@nestjs/swagger": "^7.3.1",
     "@prisma/client": "^5.13.0",
     "@types/bcrypt": "^5.0.2",
+    "@types/multer": "^1.4.11",
+    "@types/uuid": "^9.0.8",
+    "aws-sdk": "^2.1632.0",
     "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
@@ -35,7 +39,8 @@
     "ioredis": "^5.4.1",
     "nodemailer": "^6.9.13",
     "reflect-metadata": "^0.2.0",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
