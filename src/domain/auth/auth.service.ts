@@ -21,6 +21,8 @@ import {
 } from "@liaoliaots/nestjs-redis";
 import Redis from "ioredis";
 import InvalidEmailException from "../../exception/invalid-email.exception";
+import CheckDuplicateNicknameParamsDto from "./dto/req/check-duplicate-nickname.params.dto";
+import CheckDuplicateNicknameResponseDto from "./dto/res/check-duplicate-nickname.response.dto";
 
 type ExistsMember = Member | null;
 
@@ -67,6 +69,20 @@ export default class AuthService {
         });
 
         return new SignupResponseDto(member.id.toString());
+    }
+
+    async checkDuplicateNickname(
+        paramsDto: CheckDuplicateNicknameParamsDto
+    ): Promise<CheckDuplicateNicknameResponseDto> {
+        const memberByNickname: ExistsMember = await this.prisma.member.findUnique({
+            where: {
+                nickname: paramsDto.nickname,
+            },
+        });
+
+        const result = memberByNickname != null;
+
+        return new CheckDuplicateNicknameResponseDto(result);
     }
 
 }

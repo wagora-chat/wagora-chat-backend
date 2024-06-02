@@ -1,5 +1,5 @@
 import {
-    Body, Controller, Post,
+    Body, Controller, Get, Post, Query,
 } from "@nestjs/common";
 import AuthService from "./auth.service";
 import SignupRequestDto from "./dto/req/signup.request.dto";
@@ -30,6 +30,8 @@ import {
 import {
     ApiDefaultResponseDecorator,
 } from "../../util/decorators/api-default-response.decorator";
+import CheckDuplicateNicknameParamsDto from "./dto/req/check-duplicate-nickname.params.dto";
+import CheckDuplicateNicknameResponseDto from "./dto/res/check-duplicate-nickname.response.dto";
 
 @ApiTags("auth")
 @Controller("/auth")
@@ -95,6 +97,19 @@ export default class AuthController {
 
         return new CustomResponse<VerifyCodeEmailResponseDto>(
             ResponseCode.AUTH_S003, result
+        );
+    }
+
+    /**
+     * 중복 정보 확인 api
+     * @param params
+     */
+    @Get("/nicknames")
+    async checkDuplicateNickname(@Query() params: CheckDuplicateNicknameParamsDto) {
+        const result = await this.authService.checkDuplicateNickname(params);
+
+        return new CustomResponse<CheckDuplicateNicknameResponseDto>(
+            ResponseCode.AUTH_S004, result
         );
     }
 
