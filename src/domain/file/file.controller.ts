@@ -13,8 +13,6 @@ import {
     FileUploadResponseDto,
 } from "./dto/response/file-upload.response.dto";
 import {
-    ApiBody,
-    ApiConsumes,
     ApiOperation, ApiTags,
 } from "@nestjs/swagger";
 import {
@@ -23,9 +21,12 @@ import {
 import {
     FileInterceptor,
 } from "@nestjs/platform-express";
+import {
+    FileUploadSwaggerDecorator,
+} from "../../util/decorators/dto-swagger.decorator";
 
-@ApiTags("file")
-@Controller("file")
+@ApiTags("files")
+@Controller("files")
 export class FileController {
     constructor(private readonly fileService: FileService) {
     }
@@ -36,18 +37,7 @@ export class FileController {
     })
     @ApiCustomResponseDecorator(FileUploadResponseDto)
     @UseInterceptors(FileInterceptor("file"))
-    @ApiConsumes("multipart/form-data")
-    @ApiBody({
-        schema: {
-            type: "object",
-            properties: {
-                file: {
-                    type: "string",
-                    format: "binary",
-                },
-            },
-        },
-    })
+    @FileUploadSwaggerDecorator()
     @HttpCode(HttpStatus.CREATED)
     @Post()
     async fileUpload(@UploadedFile() file: Express.Multer.File): Promise<CustomResponse<FileUploadResponseDto>> {

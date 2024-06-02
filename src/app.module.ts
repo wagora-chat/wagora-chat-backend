@@ -18,6 +18,9 @@ import PrismaModule from "./prisma/prisma.module";
 import {
     FileModule,
 } from "./domain/file/file.module";
+import {
+    S3Module,
+} from "./s3/s3.module";
 
 @Module({
     imports: [
@@ -26,6 +29,7 @@ import {
             envFilePath: ".env",
         }),
         FileModule,
+        S3Module,
         AuthModule,
         PrismaModule,
         RedisModule.forRootAsync(

@@ -7,9 +7,12 @@ import {
 import {
     FileController,
 } from "./file.controller";
+import {
+    S3Module,
+} from "../../s3/s3.module";
 
 @Module({
-    imports: [],
+    imports: [S3Module,],
     controllers: [FileController,],
     providers: [FileService,],
     exports: [],
