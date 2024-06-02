@@ -27,11 +27,11 @@ import {
 import {
     ApiOperation, ApiTags,
 } from "@nestjs/swagger";
-import {
-    ApiDefaultResponseDecorator,
-} from "../../util/decorators/api-default-response.decorator";
 import CheckDuplicateNicknameParamsDto from "./dto/req/check-duplicate-nickname.params.dto";
 import CheckDuplicateNicknameResponseDto from "./dto/res/check-duplicate-nickname.response.dto";
+import {
+    ApiCustomResponseDecorator,
+} from "../../util/decorators/api-custom-response.decorator";
 
 @ApiTags("auth")
 @Controller("/auth")
@@ -50,7 +50,7 @@ export default class AuthController {
         summary: "회원 가입 API",
         description: "인증된 이메일로 1시간 이내로, 회원가입을 한다.",
     })
-    @ApiDefaultResponseDecorator(SignupResponseDto)
+    @ApiCustomResponseDecorator(SignupResponseDto)
     @Post("/signup")
     async signup(
         @Body(CheckPasswordPipe) body: SignupRequestDto
@@ -70,7 +70,7 @@ export default class AuthController {
         summary: "이메일 인증 요청 API",
         description: "자신의 이메일로 인증번호를 받는다.",
     })
-    @ApiDefaultResponseDecorator(SendCodeToEmailResponseDto)
+    @ApiCustomResponseDecorator(SendCodeToEmailResponseDto)
     @Post("/emails")
     async transferValidateCode(@Body() request: SendCodeToEmailRequestDto)
         : Promise<CustomResponse<SendCodeToEmailResponseDto>> {
@@ -89,7 +89,7 @@ export default class AuthController {
         summary: "이메일 인증 확인 API",
         description: "받은 인증번호를 5분 이내로 입력해서, 본인 이메일임을 인증한다.",
     })
-    @ApiDefaultResponseDecorator(VerifyCodeEmailResponseDto)
+    @ApiCustomResponseDecorator(VerifyCodeEmailResponseDto)
     @Post("/emails/confirm")
     async confirmValidateCode(@Body() request: VerifyCodeEmailRequestDto)
     : Promise<CustomResponse<VerifyCodeEmailResponseDto>> {

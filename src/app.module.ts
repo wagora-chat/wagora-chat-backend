@@ -15,15 +15,23 @@ import {
 } from "@liaoliaots/nestjs-redis";
 import AuthModule from "./domain/auth/auth.module";
 import PrismaModule from "./prisma/prisma.module";
+import {
+    FileModule,
+} from "./domain/file/file.module";
+import {
+    S3Module,
+} from "./s3/s3.module";
 
 @Module({
     imports: [
-        AuthModule,
-        PrismaModule,
         ConfigModule.forRoot({
             isGlobal: true,
             envFilePath: ".env",
         }),
+        FileModule,
+        S3Module,
+        AuthModule,
+        PrismaModule,
         RedisModule.forRootAsync(
             {
                 imports: [ConfigModule,],
