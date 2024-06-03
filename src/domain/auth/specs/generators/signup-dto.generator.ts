@@ -1,8 +1,8 @@
 import {
     fakerKO as faker,
 } from "@faker-js/faker";
-import SignupRequestDto from "../dto/req/signup.request.dto";
-import SignupResponseDto from "../dto/res/signup.response.dto";
+import SignupRequestDto from "../../dto/req/signup.request.dto";
+import SignupResponseDto from "../../dto/res/signup.response.dto";
 
 export default class SignupDtoGenerator {
     static request(): SignupRequestDto {

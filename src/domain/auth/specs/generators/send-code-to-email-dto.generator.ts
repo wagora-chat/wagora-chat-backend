@@ -3,10 +3,10 @@ import {
 } from "@faker-js/faker";
 import {
     SendCodeToEmailRequestDto,
-} from "../dto/req/send-code-to-email.request.dto";
+} from "../../dto/req/send-code-to-email.request.dto";
 import {
     SendCodeToEmailResponseDto,
-} from "../dto/res/send-code-to-email.response.dto";
+} from "../../dto/res/send-code-to-email.response.dto";
 
 export default class SendCodeToEmailDtoGenerator {
     static request(): SendCodeToEmailRequestDto {
