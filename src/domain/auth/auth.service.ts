@@ -80,9 +80,7 @@ export default class AuthService {
             },
         });
 
-        const result = memberByNickname != null;
-
-        return new CheckDuplicateNicknameResponseDto(result);
+        return new CheckDuplicateNicknameResponseDto(!!memberByNickname);
     }
 
 }
