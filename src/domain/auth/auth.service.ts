@@ -23,6 +23,8 @@ import Redis from "ioredis";
 import InvalidEmailException from "../../exception/invalid-email.exception";
 import CheckDuplicateNicknameParamsDto from "./dto/req/check-duplicate-nickname.params.dto";
 import CheckDuplicateNicknameResponseDto from "./dto/res/check-duplicate-nickname.response.dto";
+import CheckDuplicateEmailParamsDto from "./dto/req/check-duplicate-email.params.dto";
+import CheckDuplicateEmailResponseDto from "./dto/res/check-duplicate-email.response.dto";
 
 type ExistsMember = Member | null;
 
@@ -83,4 +85,15 @@ export default class AuthService {
         return new CheckDuplicateNicknameResponseDto(!!memberByNickname);
     }
 
+    async checkDuplicateEmail(
+        paramsDto: CheckDuplicateEmailParamsDto
+    ): Promise<CheckDuplicateEmailResponseDto> {
+        const memberByEmail: ExistsMember = await this.prisma.member.findUnique({
+            where: {
+                email: paramsDto.email,
+            },
+        });
+
+        return new CheckDuplicateEmailResponseDto(!!memberByEmail);
+    }
 }
