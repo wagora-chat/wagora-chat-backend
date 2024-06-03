@@ -1,5 +1,5 @@
 import {
-    IsEmail, IsNotEmpty, IsString, IsUrl, Length, Matches,
+    IsEmail, IsNotEmpty, IsString, IsUrl, Matches,
 } from "class-validator";
 import {
     ApiProperty,
@@ -12,14 +12,8 @@ export default class SignupRequestDto {
         required: true,
         example: "test123@naver.com",
     })
-    @IsNotEmpty({
-        message: "이메일은 비어있으면 안됩니다.",
-    })
-    @IsString({
-        message: "이메일은 문자열이어야 합니다.",
-    })
     @IsEmail({}, {
-        message: "이메일 형식과 맞지 않습니다.",
+        message: "이메일은 비어있으면 안되며, 문자열 형식과 맞아야 합니다.",
     })
     readonly email: string;
 
