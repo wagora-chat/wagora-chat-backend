@@ -104,6 +104,11 @@ export default class AuthController {
      * 중복 정보 확인 api
      * @param params
      */
+    @ApiOperation({
+        summary: "닉네임 중복 확인 API",
+        description: "회원가입 절차중 닉네임은 중복되어서는 안되기 때문에, 사용하고자 하는 닉네임의 중복을 확인한다.",
+    })
+    @ApiCustomResponseDecorator(CheckDuplicateNicknameResponseDto)
     @Get("/nicknames")
     async checkDuplicateNickname(@Query() params: CheckDuplicateNicknameParamsDto) {
         const result = await this.authService.checkDuplicateNickname(params);
