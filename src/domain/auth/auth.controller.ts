@@ -32,6 +32,8 @@ import CheckDuplicateNicknameResponseDto from "./dto/res/check-duplicate-nicknam
 import {
     ApiCustomResponseDecorator,
 } from "../../util/decorators/api-custom-response.decorator";
+import CheckDuplicateEmailParamsDto from "./dto/req/check-duplicate-email.params.dto";
+import CheckDuplicateEmailResponseDto from "./dto/res/check-duplicate-email.response.dto";
 
 @ApiTags("auth")
 @Controller("/auth")
@@ -118,4 +120,17 @@ export default class AuthController {
         );
     }
 
+    @ApiOperation({
+        summary: "이메일 중복 확인 API",
+        description: "회원가입 절차중 이메일은 중복되어서는 안되기 때문에, 사용하고자 하는 이메일의 중복을 확인한다.",
+    })
+    @ApiCustomResponseDecorator(CheckDuplicateEmailResponseDto)
+    @Get("/emails")
+    async checkDuplicateEmail(@Query() params: CheckDuplicateEmailParamsDto) {
+        const result = await this.authService.checkDuplicateEmail(params);
+
+        return new CustomResponse<CheckDuplicateEmailResponseDto>(
+            ResponseCode.AUTH_S005, result
+        );
+    }
 }
