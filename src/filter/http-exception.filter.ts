@@ -14,8 +14,8 @@ import {
 } from "../type-guard/exception.type-guard";
 import CustomResponse from "../response/custom-response";
 import {
-    ResponseCode,
-} from "../response/code-structure";
+    ResponseStatus, ResponseStatusType,
+} from "../response/response-status";
 
 @Catch(HttpException)
 
@@ -30,20 +30,21 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
         const errorException = exception.getResponse() as ErrorExceptionType;
         let errorMessage: string;
-        let code: string;
+        let code: ResponseStatusType;
 
         if (isCustomErrorExceptionType(errorException)) {
             errorMessage = errorException.message;
-            code = errorException.errorCode.code;
+            code = errorException.errorCode;
         } else if (isDefaultErrorExceptionType(errorException)) {
             errorMessage = errorException.message;
-            code = ResponseCode.DEFAULT_F.code;
+            code = ResponseStatus.DEFAULT_F;
         } else {
             errorMessage = errorException;
-            code = ResponseCode.UNKNOWN_F.code;
+            code = ResponseStatus.UNKNOWN_F;
         }
         this.logger.error(
-            `Error Occur ${request.url} ${request.method}, errorMessage: ${JSON.stringify(errorMessage, null, 2)}`,
+            `Error Occur ${request.url} ${request.method}, code: [${code.code}, ${code.message}]
+            , errorMessage: ${JSON.stringify(errorMessage, null, 2)}`,
         );
 
         const errorData: ErrorDataDto = {

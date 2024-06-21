@@ -22,8 +22,8 @@ import {
     FileUploadSwaggerDecorator,
 } from "../../util/decorators/dto-swagger.decorator";
 import {
-    ResponseCode,
-} from "../../response/code-structure";
+    ResponseStatus,
+} from "../../response/response-status";
 
 @ApiTags("files")
 @Controller("files")
@@ -43,7 +43,7 @@ export class FileController {
     async fileUpload(@UploadedFile() file: Express.Multer.File): Promise<CustomResponse<FileUploadResponseDto>> {
         const result = await this.fileService.fileUpload(file);
         
-        return new CustomResponse(ResponseCode.FILE_S001.code, {
+        return new CustomResponse(ResponseStatus.FILE_S001, {
             filePath: result,
         });
     }

@@ -28,8 +28,8 @@ import {
     VerifyCodeEmailResponseDto,
 } from "./dto/res/verify-code-email.response.dto";
 import {
-    ResponseCode,
-} from "../../response/code-structure";
+    ResponseStatus,
+} from "../../response/response-status";
 
 interface EmailOptions {
     from: string;
@@ -95,7 +95,7 @@ export class EmailService {
         const resCode: string | null = await this.client.get(key);
 
         if (resCode === null || resCode !== request.code) {
-            throw new AuthEmailConfirmException(ResponseCode.AUTH_F003);
+            throw new AuthEmailConfirmException(ResponseStatus.AUTH_F003);
         }
 
         await this.client.del(request.email);

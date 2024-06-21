@@ -32,8 +32,8 @@ import {
     ErrorDataDto,
 } from "../../../src/response/error-data.dto";
 import {
-    ResponseCode,
-} from "../../../src/response/code-structure";
+    ResponseStatus,
+} from "../../../src/response/response-status";
 
 describe("Auth Test (e2e)", () => {
     let app: INestApplication<any>;
@@ -89,7 +89,7 @@ describe("Auth Test (e2e)", () => {
 
             // then
             const actual = response.body as CustomResponse<VerifyCodeEmailResponseDto>;
-            expect(actual.code).toBe(ResponseCode.AUTH_S003.code);
+            expect(actual.customStatus).toStrictEqual(ResponseStatus.AUTH_S003);
             expect(actual.data.email).toBe(expectedUserEmail);
         });
 
@@ -113,7 +113,7 @@ describe("Auth Test (e2e)", () => {
 
             // then
             const actual = response.body as CustomResponse<ErrorDataDto>;
-            expect(actual.code).toBe(ResponseCode.AUTH_F003.code);
+            expect(actual.customStatus).toStrictEqual(ResponseStatus.AUTH_F003);
             expect(actual.data.path).toBe(expectedPath);
         });
 
@@ -134,7 +134,7 @@ describe("Auth Test (e2e)", () => {
 
             // then
             const actual = response.body as CustomResponse<ErrorDataDto>;
-            expect(actual.code).toBe(ResponseCode.AUTH_F003.code);
+            expect(actual.customStatus).toStrictEqual(ResponseStatus.AUTH_F003);
             expect(actual.data.path).toBe(expectedPath);
         });
     });
