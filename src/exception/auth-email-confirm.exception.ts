@@ -2,11 +2,11 @@ import {
     ForbiddenException,
 } from "./http/forbidden.exception";
 import {
-    ResponseCode,
-} from "../response/response-code.enum";
+    ResponseCodeType,
+} from "../response/code-structure";
 
 export class AuthEmailConfirmException extends ForbiddenException {
-    constructor(errorCode: ResponseCode) {
+    constructor(errorCode: ResponseCodeType) {
         super("Invalid Email", errorCode);
     }
 }

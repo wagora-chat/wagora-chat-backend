@@ -1,8 +1,3 @@
-type ResponseCodeType = {
-    code: string,
-    message: string
-}
-
 const createResponseCode = (code: string, message: string): ResponseCodeType => ({
     code,
     message,
@@ -14,7 +9,6 @@ export const ResponseCode = {
     AUTH_F001: createResponseCode("AUTH_F001", "Email Property is Duplicated"),
     AUTH_F002: createResponseCode("AUTH_F002", "Nickname is Duplicated"),
     AUTH_F003: createResponseCode("AUTH_F003", "Invalid Email"),
-    AUTH_F004: createResponseCode("AUTH_F004", "Invalid Email"),
     AUTH_S001: createResponseCode("AUTH_S001", "POST /auth/signup"),
     AUTH_S002: createResponseCode("AUTH_S002", "POST /auth/emails"),
     AUTH_S003: createResponseCode("AUTH_S003", "POST /auth/emails/confirm"),
@@ -22,3 +16,8 @@ export const ResponseCode = {
     AUTH_S005: createResponseCode("AUTH_S005", "GET /auth/emails"),
     FILE_S001: createResponseCode("FILE_S001", "POST /files"),
 } as const;
+
+export type ResponseCodeType = {
+    code: string,
+    message: string
+}

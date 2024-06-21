@@ -2,11 +2,11 @@ import {
     HttpException, HttpStatus,
 } from "@nestjs/common";
 import {
-    ResponseCode,
-} from "../../response/response-code.enum";
+    ResponseCodeType,
+} from "../../response/code-structure";
 
 export class ForbiddenException extends HttpException {
-    constructor(value: string, errorCode: ResponseCode) {
+    constructor(value: string, errorCode: ResponseCodeType) {
         super({
             message: `${value} Forbidden`,
             errorCode: errorCode,

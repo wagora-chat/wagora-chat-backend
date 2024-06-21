@@ -3,7 +3,7 @@ import {
 } from "@nestjs/common";
 import {
     ResponseCode,
-} from "../response/response-code.enum";
+} from "../response/code-structure";
 
 export class DuplicateEmailException extends ConflictException {
     constructor() {

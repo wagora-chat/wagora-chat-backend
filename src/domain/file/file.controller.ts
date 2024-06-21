@@ -7,9 +7,6 @@ import {
 } from "@nestjs/common";
 import CustomResponse from "../../response/custom-response";
 import {
-    ResponseCode,
-} from "../../response/response-code.enum";
-import {
     FileUploadResponseDto,
 } from "./dto/response/file-upload.response.dto";
 import {
@@ -24,6 +21,9 @@ import {
 import {
     FileUploadSwaggerDecorator,
 } from "../../util/decorators/dto-swagger.decorator";
+import {
+    ResponseCode,
+} from "../../response/code-structure";
 
 @ApiTags("files")
 @Controller("files")
@@ -43,7 +43,7 @@ export class FileController {
     async fileUpload(@UploadedFile() file: Express.Multer.File): Promise<CustomResponse<FileUploadResponseDto>> {
         const result = await this.fileService.fileUpload(file);
         
-        return new CustomResponse(ResponseCode.FILE_S001, {
+        return new CustomResponse(ResponseCode.FILE_S001.code, {
             filePath: result,
         });
     }

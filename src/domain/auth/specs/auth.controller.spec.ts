@@ -5,12 +5,12 @@ import {
 import AuthService from "../auth.service";
 import SignupDtoGenerator from "./generators/signup-dto.generator";
 import {
-    ResponseCode,
-} from "../../../response/response-code.enum";
-import {
     EmailService,
 } from "../email.service";
 import SendCodeToEmailDtoGenerator from "./generators/send-code-to-email-dto.generator";
+import {
+    ResponseCode,
+} from "../../../response/code-structure";
 
 const authServiceMock = {
     signup: jest.fn(),
@@ -61,7 +61,7 @@ describe("AuthController", () => {
 
             expect(result).not.toBeNull();
             expect(result.data.id).toBe(signupResponseDto.id);
-            expect(result.code).toBe(ResponseCode.AUTH_S001);
+            expect(result.code).toBe(ResponseCode.AUTH_S001.code);
         });
     });
 
@@ -77,7 +77,7 @@ describe("AuthController", () => {
 
             expect(result).not.toBeNull();
             expect(result.data.email).toBe(sendCodeToEmailRequestDto.email);
-            expect(result.code).toBe(ResponseCode.AUTH_S002);
+            expect(result.code).toBe(ResponseCode.AUTH_S002.code);
         });
     });
 
@@ -88,7 +88,7 @@ describe("AuthController", () => {
             const result = await authController.checkDuplicateNickname(checkDuplicateNicknameParamsDto);
 
             expect(result).not.toBeNull();
-            expect(result.code).toBe(ResponseCode.AUTH_S004);
+            expect(result.code).toBe(ResponseCode.AUTH_S004.code);
         });
     });
 });

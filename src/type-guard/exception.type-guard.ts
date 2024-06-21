@@ -1,13 +1,13 @@
 import {
-    ResponseCode,
-} from "../response/response-code.enum";
+    ResponseCodeType,
+} from "../response/code-structure";
 
 export type ErrorExceptionType = string | CustomErrorResponseType | DefaultErrorResponseType
-export type CustomErrorResponseType = { message: string, errorCode: ResponseCode }
+export type CustomErrorResponseType = { message: string, errorCode: ResponseCodeType }
 export type DefaultErrorResponseType = { message: string, status: number }
 
 export function isCustomErrorExceptionType(response: ErrorExceptionType)
-    : response is { message: string, errorCode: ResponseCode } {
+    : response is { message: string, errorCode: ResponseCodeType } {
     return typeof response === "object" && "message" in response && "errorCode" in response;
 }
 

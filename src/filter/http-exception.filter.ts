@@ -15,7 +15,7 @@ import {
 import CustomResponse from "../response/custom-response";
 import {
     ResponseCode,
-} from "../response/response-code.enum";
+} from "../response/code-structure";
 
 @Catch(HttpException)
 
@@ -30,17 +30,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
         const errorException = exception.getResponse() as ErrorExceptionType;
         let errorMessage: string;
-        let code: ResponseCode;
+        let code: string;
 
         if (isCustomErrorExceptionType(errorException)) {
             errorMessage = errorException.message;
-            code = errorException.errorCode;
+            code = errorException.errorCode.code;
         } else if (isDefaultErrorExceptionType(errorException)) {
             errorMessage = errorException.message;
-            code = ResponseCode.DEFAULT_F001;
+            code = ResponseCode.DEFAULT_F.code;
         } else {
             errorMessage = errorException;
-            code = ResponseCode.UNKNOWN_F001;
+            code = ResponseCode.UNKNOWN_F.code;
         }
         this.logger.error(
             `Error Occur ${request.url} ${request.method}, errorMessage: ${JSON.stringify(errorMessage, null, 2)}`,

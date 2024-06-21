@@ -22,14 +22,14 @@ import {
     AuthEmailConfirmException,
 } from "../../exception/auth-email-confirm.exception";
 import {
-    ResponseCode,
-} from "../../response/response-code.enum";
-import {
     SendCodeToEmailResponseDto,
 } from "./dto/res/send-code-to-email.response.dto";
 import {
     VerifyCodeEmailResponseDto,
 } from "./dto/res/verify-code-email.response.dto";
+import {
+    ResponseCode,
+} from "../../response/code-structure";
 
 interface EmailOptions {
     from: string;
@@ -99,8 +99,6 @@ export class EmailService {
         }
 
         await this.client.del(request.email);
-        // TODO: @mingi ^^ Redis에서 email 값을 validate로 24시간 유지합니다. 해당 데이터를 꺼내서 validate인지 확인하시면 될 것 같습니다.
-        // TODO: 작업 후 해당 anchor 지워주세요.
         await this.client.set(request.email, "validate", "EX", this.signupLimitTime);
 
         return {
