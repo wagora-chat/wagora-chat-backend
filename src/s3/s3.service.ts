@@ -18,7 +18,7 @@ export class S3Service {
 
     constructor(readonly configService: ConfigService) {
         this.s3Client = new S3Client({
-            region: this.configService.get("AWS_REGION") ?? "",
+            region: this.configService.get("AWS_REGION") ?? "ap-northeast-2",
             credentials: {
                 accessKeyId: this.configService.get<string>("AWS_ACCESS_KEY") ?? "",
                 secretAccessKey: this.configService.get("AWS_SECRET_KEY") ?? "",
