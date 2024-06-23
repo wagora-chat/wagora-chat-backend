@@ -5,9 +5,6 @@ import AuthService from "./auth.service";
 import SignupRequestDto from "./dto/req/signup.request.dto";
 import CheckPasswordPipe from "./pipe/check-password.pipe";
 import SignupResponseDto from "./dto/res/signup.response.dto";
-import {
-    ResponseCode,
-} from "../../response/response-code.enum";
 import CustomResponse from "../../response/custom-response";
 import {
     SendCodeToEmailRequestDto,
@@ -34,6 +31,9 @@ import {
 } from "../../util/decorators/api-custom-response.decorator";
 import CheckDuplicateEmailParamsDto from "./dto/req/check-duplicate-email.params.dto";
 import CheckDuplicateEmailResponseDto from "./dto/res/check-duplicate-email.response.dto";
+import {
+    ResponseStatus,
+} from "../../response/response-status";
 
 @ApiTags("auth")
 @Controller("/auth")
@@ -60,7 +60,7 @@ export default class AuthController {
         const data: SignupResponseDto = await this.authService.signup(body);
 
         return new CustomResponse<SignupResponseDto>(
-            ResponseCode.AUTH_S001, data
+            ResponseStatus.AUTH_S001, data
         );
     }
 
@@ -79,7 +79,7 @@ export default class AuthController {
         const result = await this.emailService.transferValidateCode(request);
 
         return new CustomResponse<SendCodeToEmailResponseDto>(
-            ResponseCode.AUTH_S002, result
+            ResponseStatus.AUTH_S002, result
         );
     }
 
@@ -98,7 +98,7 @@ export default class AuthController {
         const result = await this.emailService.confirmValidateCode(request);
 
         return new CustomResponse<VerifyCodeEmailResponseDto>(
-            ResponseCode.AUTH_S003, result
+            ResponseStatus.AUTH_S003, result
         );
     }
 
@@ -116,7 +116,7 @@ export default class AuthController {
         const result = await this.authService.checkDuplicateNickname(params);
 
         return new CustomResponse<CheckDuplicateNicknameResponseDto>(
-            ResponseCode.AUTH_S004, result
+            ResponseStatus.AUTH_S004, result
         );
     }
 
@@ -130,7 +130,7 @@ export default class AuthController {
         const result = await this.authService.checkDuplicateEmail(params);
 
         return new CustomResponse<CheckDuplicateEmailResponseDto>(
-            ResponseCode.AUTH_S005, result
+            ResponseStatus.AUTH_S005, result
         );
     }
 }

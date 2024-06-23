@@ -2,14 +2,14 @@ import {
     BadRequestException,
 } from "@nestjs/common";
 import {
-    ResponseCode,
-} from "../response/response-code.enum";
+    ResponseStatus,
+} from "../response/response-status";
 
 export default class InvalidEmailException extends BadRequestException {
     constructor() {
         super({
             message: "Invalid Email",
-            errorCode: ResponseCode.AUTH_F004,
+            errorCode: ResponseStatus.AUTH_F003,
         });
     }
 }
