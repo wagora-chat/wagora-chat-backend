@@ -1,15 +1,15 @@
 import {
-    HttpException, HttpStatus,
+    HttpException, HttpStatus, 
 } from "@nestjs/common";
 import {
-    ResponseStatusType,
+    ResponseStatusType, 
 } from "../../response/response-status";
 
-export class NotFoundException extends HttpException {
+export class UnauthorizedException extends HttpException {
     constructor(value: string, errorCode: ResponseStatusType) {
         super({
-            message: `${value} Not Found`,
+            message: `${value} Login Failed`,
             errorCode: errorCode,
-        }, HttpStatus.NOT_FOUND);
+        }, HttpStatus.UNAUTHORIZED);
     }
 }
