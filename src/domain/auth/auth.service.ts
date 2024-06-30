@@ -126,7 +126,7 @@ export default class AuthService {
         });
 
         if (!member || !await bcrypt.compare(loginRequestDto.password, member.password)) {
-            throw new LoginFailedException("Login Failed", ResponseStatus.AUTH_FO04);
+            throw new LoginFailedException(ResponseStatus.AUTH_FO04);
         }
 
         const payload = {
