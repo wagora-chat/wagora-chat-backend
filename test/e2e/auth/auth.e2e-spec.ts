@@ -85,12 +85,14 @@ describe("Auth Test (e2e)", () => {
         await app.init();
     });
 
+    // TODO: App 종료 후, 컨테이너도 종료
     afterAll(async () => {
         await app.close();
         await redisContainer.stop();
-        await  postgresContainer.stop();
+        await postgresContainer.stop();
     });
 
+    // TODO: 컨테이너 내부 값 삭제(초기화)
     beforeEach(async () => {
         await redisClient.reset();
         await prismaConfig.member.deleteMany({});
@@ -101,8 +103,8 @@ describe("Auth Test (e2e)", () => {
             // given
             const expectedUserEmail = "test1234@gmail.com";
             const expectedCode = "123456";
-            await redisClient.set("validateEmail-"+expectedUserEmail, expectedCode);
-            const requestBody: VerifyCodeEmailRequestDto =  {
+            await redisClient.set("validateEmail-" + expectedUserEmail, expectedCode);
+            const requestBody: VerifyCodeEmailRequestDto = {
                 email: expectedUserEmail,
                 code: expectedCode,
             };
@@ -124,7 +126,7 @@ describe("Auth Test (e2e)", () => {
             const expectedUserEmail = "test1234@gmail.com";
             const expectedCode = "123456";
             const expectedPath = "/auth/emails/confirm";
-            await redisClient.set("validateEmail-"+expectedUserEmail, expectedCode);
+            await redisClient.set("validateEmail-" + expectedUserEmail, expectedCode);
             const invalidCode = "654321";
             const requestBody: VerifyCodeEmailRequestDto = {
                 email: expectedUserEmail,
