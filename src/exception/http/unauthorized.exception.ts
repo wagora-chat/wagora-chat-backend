@@ -8,7 +8,7 @@ import {
 export class UnauthorizedException extends HttpException {
     constructor(value: string, errorCode: ResponseStatusType) {
         super({
-            message: `${value} Login Failed`,
+            message: `${value}`,
             errorCode: errorCode,
         }, HttpStatus.UNAUTHORIZED);
     }
