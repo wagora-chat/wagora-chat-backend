@@ -1,143 +1,153 @@
 import {
-    Inject, Injectable,
+    Body, Controller, Get, HttpCode, HttpStatus, Post, Query,
 } from "@nestjs/common";
+import AuthService from "./auth.service";
 import SignupRequestDto from "./dto/req/signup.request.dto";
-import {
-    Member, PrismaClient,
-} from "@prisma/client";
-import * as bcrypt from "bcrypt";
-import {
-    DuplicateEmailException,
-} from "../../exception/duplicate-email.exception";
-import {
-    PrismaConfig,
-} from "../../prisma/prisma.config";
+import CheckPasswordPipe from "./pipe/check-password.pipe";
 import SignupResponseDto from "./dto/res/signup.response.dto";
+import CustomResponse from "../../response/custom-response";
 import {
-    DuplicateNicknameException,
-} from "../../exception/duplicate-nickname.exception";
+    SendCodeToEmailRequestDto,
+} from "./dto/req/send-code-to-email.request.dto";
 import {
-    InjectRedis,
-} from "@liaoliaots/nestjs-redis";
-import Redis from "ioredis";
-import InvalidEmailException from "../../exception/invalid-email.exception";
+    SendCodeToEmailResponseDto,
+} from "./dto/res/send-code-to-email.response.dto";
+import {
+    VerifyCodeEmailRequestDto,
+} from "./dto/req/verify-code-email.request.dto";
+import {
+    VerifyCodeEmailResponseDto,
+} from "./dto/res/verify-code-email.response.dto";
+import {
+    EmailService,
+} from "./email.service";
+import {
+    ApiOperation, ApiTags,
+} from "@nestjs/swagger";
 import CheckDuplicateNicknameParamsDto from "./dto/req/check-duplicate-nickname.params.dto";
 import CheckDuplicateNicknameResponseDto from "./dto/res/check-duplicate-nickname.response.dto";
+import {
+    ApiCustomResponseDecorator,
+} from "../../util/decorators/api-custom-response.decorator";
 import CheckDuplicateEmailParamsDto from "./dto/req/check-duplicate-email.params.dto";
 import CheckDuplicateEmailResponseDto from "./dto/res/check-duplicate-email.response.dto";
-import LoginRequestDto from "./dto/req/login.request.dto";
-import {
-    JwtService,
-} from "@nestjs/jwt";
-import {
-    ConfigService,
-} from "@nestjs/config";
-import LoginResponseDto from "./dto/res/login.response.dto";
 import {
     ResponseStatus,
 } from "../../response/response-status";
-import LoginFailedException from "../../exception/login-failed-exception";
+import LoginResponseDto from "./dto/res/login.response.dto";
+import LoginRequestDto from "./dto/req/login.request.dto";
 
-type ExistsMember = Member | null;
-
-@Injectable()
-export default class AuthService {
-    private readonly jwtSecret: string;
-
-    constructor(@Inject(PrismaConfig) private readonly prisma: PrismaClient,
-                @InjectRedis() private readonly client: Redis,
-                configService: ConfigService,
-                private readonly jwtService: JwtService) {
-        const jwtSecret = configService.get<string>("JWT_SECRET");
-        if (!jwtSecret) {
-            throw new Error("undefined");
-        }
-        this.jwtSecret = jwtSecret;
+@ApiTags("auth")
+@Controller("/auth")
+export default class AuthController {
+    constructor(
+        private readonly authService: AuthService,
+        private readonly emailService: EmailService
+    ) {
     }
 
-    async signup(signupRequestDto: SignupRequestDto): Promise<SignupResponseDto> {
-        const memberByEmail: ExistsMember = await this.prisma.member.findUnique({
-            where: {
-                email: signupRequestDto.email,
-            },
-        });
+    /**
+     * 회원가입 API
+     * @param body
+     */
+    @ApiOperation({
+        summary: "회원 가입 API",
+        description: "인증된 이메일로 1시간 이내로, 회원가입을 한다.",
+    })
+    @ApiCustomResponseDecorator(SignupResponseDto)
+    @Post("/signup")
+    async signup(
+        @Body(CheckPasswordPipe) body: SignupRequestDto
+    ): Promise<CustomResponse<SignupResponseDto>> {
+        const data: SignupResponseDto = await this.authService.signup(body);
 
-        if (memberByEmail) {
-            throw new DuplicateEmailException();
-        }
-
-        const memberByNickname: ExistsMember = await this.prisma.member.findUnique({
-            where: {
-                nickname: signupRequestDto.nickname,
-            },
-        });
-
-        if (memberByNickname) {
-            throw new DuplicateNicknameException();
-        }
-
-        const validatedEmail: string | null = await this.client.get(signupRequestDto.email);
-        if (!validatedEmail) {
-            throw new InvalidEmailException();
-        }
-        await this.client.del(signupRequestDto.email);
-
-        const member: Member = await this.prisma.member.create({
-            data: {
-                email: signupRequestDto.email,
-                password: await bcrypt.hash(signupRequestDto.password, 10),
-                nickname: signupRequestDto.nickname,
-                profile: signupRequestDto.profile,
-            },
-        });
-
-        return new SignupResponseDto(member.id.toString());
+        return new CustomResponse<SignupResponseDto>(
+            ResponseStatus.AUTH_S001, data
+        );
     }
 
-    async checkDuplicateNickname(
-        paramsDto: CheckDuplicateNicknameParamsDto
-    ): Promise<CheckDuplicateNicknameResponseDto> {
-        const memberByNickname: ExistsMember = await this.prisma.member.findUnique({
-            where: {
-                nickname: paramsDto.nickname,
-            },
-        });
+    /**
+     * email 인증 요청 api
+     * @param request
+     */
+    @ApiOperation({
+        summary: "이메일 인증 요청 API",
+        description: "자신의 이메일로 인증번호를 받는다.",
+    })
+    @ApiCustomResponseDecorator(SendCodeToEmailResponseDto)
+    @Post("/emails")
+    async transferValidateCode(@Body() request: SendCodeToEmailRequestDto)
+        : Promise<CustomResponse<SendCodeToEmailResponseDto>> {
+        const result = await this.emailService.transferValidateCode(request);
 
-        return new CheckDuplicateNicknameResponseDto(!!memberByNickname);
+        return new CustomResponse<SendCodeToEmailResponseDto>(
+            ResponseStatus.AUTH_S002, result
+        );
     }
 
-    async checkDuplicateEmail(
-        paramsDto: CheckDuplicateEmailParamsDto
-    ): Promise<CheckDuplicateEmailResponseDto> {
-        const memberByEmail: ExistsMember = await this.prisma.member.findUnique({
-            where: {
-                email: paramsDto.email,
-            },
-        });
+    /**
+     * email 인증 확인 api
+     * @param request
+     */
+    @ApiOperation({
+        summary: "이메일 인증 확인 API",
+        description: "받은 인증번호를 5분 이내로 입력해서, 본인 이메일임을 인증한다.",
+    })
+    @ApiCustomResponseDecorator(VerifyCodeEmailResponseDto)
+    @Post("/emails/confirm")
+    async confirmValidateCode(@Body() request: VerifyCodeEmailRequestDto)
+        : Promise<CustomResponse<VerifyCodeEmailResponseDto>> {
+        const result = await this.emailService.confirmValidateCode(request);
 
-        return new CheckDuplicateEmailResponseDto(!!memberByEmail);
+        return new CustomResponse<VerifyCodeEmailResponseDto>(
+            ResponseStatus.AUTH_S003, result
+        );
     }
 
-    async login(loginRequestDto: LoginRequestDto): Promise<LoginResponseDto> {
-        const member: ExistsMember = await this.prisma.member.findUnique({
-            where: {
-                email: loginRequestDto.email,
-            },
-        });
+    /**
+     * 중복 정보 확인 api
+     * @param params
+     */
+    @ApiOperation({
+        summary: "닉네임 중복 확인 API",
+        description: "회원가입 절차중 닉네임은 중복되어서는 안되기 때문에, 사용하고자 하는 닉네임의 중복을 확인한다.",
+    })
+    @ApiCustomResponseDecorator(CheckDuplicateNicknameResponseDto)
+    @Get("/nicknames")
+    async checkDuplicateNickname(@Query() params: CheckDuplicateNicknameParamsDto) {
+        const result = await this.authService.checkDuplicateNickname(params);
 
-        if (!member || !await bcrypt.compare(loginRequestDto.password, member.password)) {
-            throw new LoginFailedException(ResponseStatus.AUTH_FO04);
-        }
+        return new CustomResponse<CheckDuplicateNicknameResponseDto>(
+            ResponseStatus.AUTH_S004, result
+        );
+    }
 
-        const payload = {
-            sub: member.id.toString(),
-        };
-        const accessToken = this.jwtService.sign(payload, {
-            secret: this.jwtSecret,
-        });
+    @ApiOperation({
+        summary: "이메일 중복 확인 API",
+        description: "회원가입 절차중 이메일은 중복되어서는 안되기 때문에, 사용하고자 하는 이메일의 중복을 확인한다.",
+    })
+    @ApiCustomResponseDecorator(CheckDuplicateEmailResponseDto)
+    @Get("/emails")
+    async checkDuplicateEmail(@Query() params: CheckDuplicateEmailParamsDto) {
+        const result = await this.authService.checkDuplicateEmail(params);
 
-        return new LoginResponseDto(
-            member.nickname, accessToken, "Bearer"
+        return new CustomResponse<CheckDuplicateEmailResponseDto>(
+            ResponseStatus.AUTH_S005, result
+        );
+    }
+
+    @ApiOperation({
+        summary: "로그인 API",
+        description: "회원은 회원가입한 이메일과 비밀번호를 통해 로그인한다.",
+    })
+    @HttpCode(HttpStatus.OK)
+    @ApiCustomResponseDecorator(LoginResponseDto)
+    @Post("/login")
+    async login(@Body() loginRequestDto: LoginRequestDto): Promise<CustomResponse<LoginResponseDto>> {
+        const result: LoginResponseDto = await this.authService.login(loginRequestDto);
+
+        return new CustomResponse<LoginResponseDto>(
+            ResponseStatus.AUTH_S006, result
         );
     }
 }

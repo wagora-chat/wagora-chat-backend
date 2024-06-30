@@ -15,6 +15,7 @@ export const ResponseStatus = {
     AUTH_S003: createResponseStatus("AUTH_S003", "POST /auth/emails/confirm"),
     AUTH_S004: createResponseStatus("AUTH_S004", "GET /auth/nicknames"),
     AUTH_S005: createResponseStatus("AUTH_S005", "GET /auth/emails"),
+    AUTH_S006: createResponseStatus("AUTH_S006", "GET /auth/login"),
     FILE_S001: createResponseStatus("FILE_S001", "POST /files"),
 } as const;
 

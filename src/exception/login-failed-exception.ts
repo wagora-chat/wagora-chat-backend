@@ -6,7 +6,7 @@ import {
 } from "../response/response-status";
 
 export default class LoginFailedException extends UnauthorizedException {
-    constructor(errorCode: ResponseStatusType) {
+    constructor(invalidCredentials: string, errorCode: ResponseStatusType) {
         super("Login Failed", errorCode);
     }
 }
