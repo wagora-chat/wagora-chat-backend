@@ -38,7 +38,6 @@ describe("AuthController", () => {
                 },
             ],
         }).compile();
-
         authController = module.get(AuthController);
     });
 

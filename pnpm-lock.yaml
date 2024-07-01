@@ -96,6 +96,9 @@ importers:
       '@nestjs/testing':
         specifier: ^10.3.8
         version: 10.3.8(@nestjs/common@10.3.8(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@10.3.8(@nestjs/common@10.3.8(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/platform-express@10.3.8)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/platform-express@10.3.8(@nestjs/common@10.3.8(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@10.3.8))
+      '@testcontainers/postgresql':
+        specifier: ^10.9.0
+        version: 10.9.0
       '@testcontainers/redis':
         specifier: ^10.9.0
         version: 10.9.0
@@ -1054,6 +1057,9 @@ packages:
   '@smithy/util-waiter@3.0.0':
     resolution: {integrity: sha512-+fEXJxGDLCoqRKVSmo0auGxaqbiCo+8oph+4auefYjaNxjOLKSY2MxVQfRzo65PaZv4fr+5lWg+au7vSuJJ/zw==}
     engines: {node: '>=16.0.0'}
+
+  '@testcontainers/postgresql@10.9.0':
+    resolution: {integrity: sha512-Z3K/TFkl/PVE2v8A6yKqgF4pSFk9ilFG02yeGhPswUjmBlcig/rpVOjBQOkQ/yJCcQ/r2RrX3RR+7vr+UO4QlQ==}
 
   '@testcontainers/redis@10.9.0':
     resolution: {integrity: sha512-zj0WibTLyLVWzkjLz26q2b8Hx0VnC4+rq7p7Pg+LWqX6ijAfcHCafze27V1wNG7aC/26nH6p5QV0y+34Aq50aw==}
@@ -5391,6 +5397,13 @@ snapshots:
       '@smithy/abort-controller': 3.0.0
       '@smithy/types': 3.0.0
       tslib: 2.6.2
+
+  '@testcontainers/postgresql@10.9.0':
+    dependencies:
+      testcontainers: 10.9.0
+    transitivePeerDependencies:
+      - encoding
+      - supports-color
 
   '@testcontainers/redis@10.9.0':
     dependencies:

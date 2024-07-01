@@ -48,11 +48,7 @@ export default class AuthService {
                 @InjectRedis() private readonly client: Redis,
                 configService: ConfigService,
                 private readonly jwtService: JwtService) {
-        const jwtSecret = configService.get<string>("JWT_SECRET");
-        if (!jwtSecret) {
-            throw new Error("undefined");
-        }
-        this.jwtSecret = jwtSecret;
+        this.jwtSecret = configService.get<string>("JWT_SECRET") ?? "secret";
     }
 
     async signup(signupRequestDto: SignupRequestDto): Promise<SignupResponseDto> {

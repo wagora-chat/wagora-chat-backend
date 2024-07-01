@@ -3,7 +3,7 @@ import {
     TestingModule,
 } from "@nestjs/testing";
 import {
-    RedisContainer, StartedRedisContainer,
+    StartedRedisContainer,
 } from "@testcontainers/redis";
 import {
     HttpExceptionFilter,
@@ -16,7 +16,6 @@ import Redis from "ioredis";
 import * as request from "supertest";
 import {
     getRedisToken,
-    RedisModule,
 } from "@liaoliaots/nestjs-redis";
 import {
     AppModule,
@@ -34,25 +33,50 @@ import {
 import {
     ResponseStatus,
 } from "../../../src/response/response-status";
+import {
+    ConfigService,
+} from "@nestjs/config";
+import {
+    redisTestContainerStarter,
+} from "../../../src/util/func/redis-container.function";
+import {
+    PrismaConfig,
+} from "../../../src/prisma/prisma.config";
+import {
+    StartedPostgreSqlContainer,
+} from "@testcontainers/postgresql";
+import {
+    psqlTestContainerStarter,
+} from "../../../src/util/func/postgresql-container.function";
 
 describe("Auth Test (e2e)", () => {
     let app: INestApplication<any>;
+    let prismaConfig: PrismaConfig;
     let redisContainer: StartedRedisContainer;
+    let postgresContainer: StartedPostgreSqlContainer;
     let redisClient: Redis;
 
     beforeAll(async () => {
-        redisContainer = await new RedisContainer().start();
+        // TODO: prisma container에 prima migrate 진행 + 정보 반환
+        const psqlConfig = await psqlTestContainerStarter();
+        postgresContainer = psqlConfig.container;
+        prismaConfig = psqlConfig.service;
+        redisContainer = await redisTestContainerStarter();
 
+        // TODO: AppModule 받아오기. env 파일을 반영하지 않도록 하므로 환경변수 직접 지정
         const module: TestingModule = await Test.createTestingModule({
             imports: [AppModule,],
-        }).overrideModule(RedisModule)
-            .useModule(RedisModule.forRoot({
-                readyLog: true,
-                config: {
-                    host: redisContainer.getHost(),
-                    port: redisContainer.getPort(),
+        }).overrideProvider(PrismaConfig)
+            .useValue(prismaConfig)
+            .overrideProvider(ConfigService)
+            .useValue({
+                get: (key: string) => {
+                    if (key === "REDIS_HOST") return redisContainer.getHost();
+                    if (key === "REDIS_PORT") return redisContainer.getPort();
+
+                    return null;
                 },
-            }))
+            })
             .compile();
 
         redisClient = module.get<Redis>(getRedisToken("default"));
@@ -61,13 +85,17 @@ describe("Auth Test (e2e)", () => {
         await app.init();
     });
 
+    // TODO: App 종료 후, 컨테이너도 종료
     afterAll(async () => {
         await app.close();
         await redisContainer.stop();
+        await postgresContainer.stop();
     });
 
+    // TODO: 컨테이너 내부 값 삭제(초기화)
     beforeEach(async () => {
         await redisClient.reset();
+        await prismaConfig.member.deleteMany({});
     });
 
     describe("confirmValidateCode Test", () => {
@@ -75,8 +103,8 @@ describe("Auth Test (e2e)", () => {
             // given
             const expectedUserEmail = "test1234@gmail.com";
             const expectedCode = "123456";
-            await redisClient.set("validateEmail-"+expectedUserEmail, expectedCode);
-            const requestBody: VerifyCodeEmailRequestDto =  {
+            await redisClient.set(`validateEmail-${expectedUserEmail}`, expectedCode);
+            const requestBody: VerifyCodeEmailRequestDto = {
                 email: expectedUserEmail,
                 code: expectedCode,
             };
@@ -98,7 +126,7 @@ describe("Auth Test (e2e)", () => {
             const expectedUserEmail = "test1234@gmail.com";
             const expectedCode = "123456";
             const expectedPath = "/auth/emails/confirm";
-            await redisClient.set("validateEmail-"+expectedUserEmail, expectedCode);
+            await redisClient.set(`validateEmail-${expectedUserEmail}`, expectedCode);
             const invalidCode = "654321";
             const requestBody: VerifyCodeEmailRequestDto = {
                 email: expectedUserEmail,
