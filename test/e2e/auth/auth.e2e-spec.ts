@@ -103,7 +103,7 @@ describe("Auth Test (e2e)", () => {
             // given
             const expectedUserEmail = "test1234@gmail.com";
             const expectedCode = "123456";
-            await redisClient.set("validateEmail-" + expectedUserEmail, expectedCode);
+            await redisClient.set(`validateEmail-${expectedUserEmail}`, expectedCode);
             const requestBody: VerifyCodeEmailRequestDto = {
                 email: expectedUserEmail,
                 code: expectedCode,
@@ -126,7 +126,7 @@ describe("Auth Test (e2e)", () => {
             const expectedUserEmail = "test1234@gmail.com";
             const expectedCode = "123456";
             const expectedPath = "/auth/emails/confirm";
-            await redisClient.set("validateEmail-" + expectedUserEmail, expectedCode);
+            await redisClient.set(`validateEmail-${expectedUserEmail}`, expectedCode);
             const invalidCode = "654321";
             const requestBody: VerifyCodeEmailRequestDto = {
                 email: expectedUserEmail,
