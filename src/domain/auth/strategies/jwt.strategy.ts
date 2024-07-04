@@ -1,5 +1,5 @@
 import {
-    Injectable, UnauthorizedException,
+    Injectable,
 } from "@nestjs/common";
 import {
     ExtractJwt,
@@ -21,7 +21,6 @@ import {
 import {
     Member,
 } from "@prisma/client";
-import InvalidJwtException from "../../../exception/Invalid-jwt.exception";
 
 export const JWT_STRATEGY = "jwt-strategy";
 
@@ -44,7 +43,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, JWT_STRATEGY) {
                 id: BigInt(payload.sub),
             },
         });
-        if (!member) throw new InvalidAccessException(ResponseStatus.AUTH_FO04);
+        if (!member) throw new InvalidAccessException(ResponseStatus.AUTH_F005);
 
         return member;
     }

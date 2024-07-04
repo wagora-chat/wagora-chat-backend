@@ -9,9 +9,9 @@ export const ResponseStatus = {
     AUTH_F001: createResponseStatus("AUTH_F001", "Email Property is Duplicated"),
     AUTH_F002: createResponseStatus("AUTH_F002", "Nickname is Duplicated"),
     AUTH_F003: createResponseStatus("AUTH_F003", "Invalid Email"),
-    AUTH_FO04: createResponseStatus("AUTH_F004", "Login Failed"),
-    AUTH_FO05: createResponseStatus("AUTH_F005", "Invalid Access Token"),
-    AUTH_FO06: createResponseStatus("AUTH_F006", "Invalid JWT"),
+    AUTH_F004: createResponseStatus("AUTH_F004", "Login Failed"),
+    AUTH_F005: createResponseStatus("AUTH_F005", "Invalid Access Token"),
+    AUTH_F006: createResponseStatus("AUTH_F006", "Invalid JWT"),
     AUTH_S001: createResponseStatus("AUTH_S001", "POST /auth/signup"),
     AUTH_S002: createResponseStatus("AUTH_S002", "POST /auth/emails"),
     AUTH_S003: createResponseStatus("AUTH_S003", "POST /auth/emails/confirm"),
@@ -19,9 +19,9 @@ export const ResponseStatus = {
     AUTH_S005: createResponseStatus("AUTH_S005", "GET /auth/emails"),
     AUTH_S006: createResponseStatus("AUTH_S006", "GET /auth/login"),
     FILE_S001: createResponseStatus("FILE_S001", "POST /files"),
+    CHAT_ROOM_F001: createResponseStatus("CHAT_ROOM_F001", "Prisma Error"),
     CHAT_ROOM_S001: createResponseStatus("CHAT_ROOM_S001", "POST /chat-rooms"),
 } as const;
-
 export type ResponseStatusType = {
     code: string,
     message: string

@@ -18,9 +18,6 @@ import InvalidJwtException from "../../../exception/Invalid-jwt.exception";
 import {
     ResponseStatus,
 } from "../../../response/response-status";
-import {
-    Member,
-} from "@prisma/client";
 
 @Injectable()
 export class JwtGuard extends AuthGuard(JWT_STRATEGY) {
@@ -34,7 +31,7 @@ export class JwtGuard extends AuthGuard(JWT_STRATEGY) {
 
     handleRequest(err: Error | null, user: any, info: any, context: ExecutionContext) {
         if (err || !user) {
-            throw new InvalidJwtException(ResponseStatus.AUTH_FO05);
+            throw new InvalidJwtException(ResponseStatus.AUTH_F005);
         }
 
         return user;
