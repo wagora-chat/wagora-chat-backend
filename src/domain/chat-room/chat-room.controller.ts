@@ -24,6 +24,12 @@ import {
 import {
     JwtGuard,
 } from "../auth/guards/jwt.guard";
+import {
+    GetMember,
+} from "../../util/decorators/get-member.decortator";
+import {
+    Member,
+} from "@prisma/client";
 
 @ApiTags("ChatRoom")
 @UseGuards(JwtGuard)
@@ -39,14 +45,19 @@ export class ChatRoomController {
     })
     @ApiCustomResponseDecorator(CreateChatRoomResponseDto)
     @HttpCode(HttpStatus.CREATED)
+
     @Post()
-    async createCharRoom(@Body() createChatRoomDto: CreateChatRoomRequestDto, @Request() req: any)
+    async createCharRoom(@Body() createChatRoomDto: CreateChatRoomRequestDto, @GetMember() member: Member)
         : Promise<CustomResponse<CreateChatRoomResponseDto>> {
-        const result = await this.chatRoomService.createChatRoom(createChatRoomDto, req.user);
+        const result = await this.chatRoomService.createChatRoom(createChatRoomDto, member);
 
         return new CustomResponse<CreateChatRoomResponseDto>(
             ResponseStatus.CHAT_ROOM_S001, result
         );
     }
 
+}
+
+export interface AuthenticatedRequest extends Request {
+    user: Member
 }

@@ -13,8 +13,8 @@ model Member {
   nickname        String       @unique @db.VarChar(20)
   password        String       @db.VarChar(100)
   profile         String       @db.VarChar(100)
-  ManagedChatRoom ChatRoom[]
-  MemberRoom      MemberRoom[]
+  managedChatRoom ChatRoom[]
+  memberRoom      MemberRoom[]
 
   @@map("member")
 }
