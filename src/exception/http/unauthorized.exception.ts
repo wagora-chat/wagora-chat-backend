@@ -1,15 +1,15 @@
 import {
-    HttpException, HttpStatus,
+    HttpException, HttpStatus, 
 } from "@nestjs/common";
 import {
-    ResponseStatusType,
+    ResponseStatusType, 
 } from "../../response/response-status";
 
-export class ForbiddenException extends HttpException {
+export class UnauthorizedException extends HttpException {
     constructor(value: string, errorCode: ResponseStatusType) {
         super({
-            message: `${value} Forbidden`,
+            message: `${value}`,
             errorCode: errorCode,
-        }, HttpStatus.FORBIDDEN);
+        }, HttpStatus.UNAUTHORIZED);
     }
 }

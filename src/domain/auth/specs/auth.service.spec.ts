@@ -8,8 +8,9 @@ import {
 import {
     DuplicateEmailException,
 } from "../../../exception/duplicate-email.exception";
-import SignupDtoGenerator from "./signup-dto.generator";
-import MemberEntityGenerator from "./member-entity.generator";
+import SignupDtoGenerator from "./generators/signup-dto.generator";
+import MemberEntityGenerator from "./generators/member-entity.generator";
+import CheckDuplicateNicknameParamsDtoGenerator from "./generators/check-duplicate-nickname.params.dto.generator";
 
 const prismaMock = {
     member: {
@@ -35,6 +36,7 @@ describe("AuthService", () => {
         authService = module.get(AuthService);
     });
 
+    const paramsDto =  CheckDuplicateNicknameParamsDtoGenerator.request();
     const signupRequestDto = SignupDtoGenerator.request();
     const member = MemberEntityGenerator.member();
 
@@ -61,6 +63,17 @@ describe("AuthService", () => {
             } catch (error) {
                 expect(error).toBeInstanceOf(DuplicateEmailException);
             }
+        });
+    });
+
+    describe("Check Duplicate Nickname", () => {
+        it("존재하지 않는 닉네임에 대해 true 응답을 반환한다.", async () => {
+            prismaMock.member.findUnique.mockResolvedValue(member);
+
+            const result = await authService.checkDuplicateNickname(paramsDto);
+
+            expect(result).not.toBeNull();
+            expect(result).toBeTruthy();
         });
     });
 });

@@ -1,11 +1,11 @@
 import {
-    ResponseCode,
-} from "./response-code.enum";
+    ResponseStatusType,
+} from "./response-status";
 
 export default class CustomResponse<T> {
     readonly timestamp: string;
 
-    constructor(readonly code: ResponseCode,
+    constructor(readonly customStatus: ResponseStatusType,
                 readonly data: T,) {
         this.timestamp = new Date().toISOString();
     }

@@ -9,13 +9,23 @@ import {
     PrismaConfig,
 } from "../../prisma/prisma.config";
 import AuthController from "./auth.controller";
+import {
+    JwtModule,
+} from "@nestjs/jwt";
 
 @Module({
-    imports: [],
+    imports: [
+        JwtModule.register({
+            signOptions: {
+                expiresIn: "1h",
+            },
+        }),
+    ],
     exports: [],
     controllers: [AuthController,],
     providers: [AuthService,
         PrismaConfig,
         EmailService,],
 })
-export default class AuthModule {}
+export default class AuthModule {
+}

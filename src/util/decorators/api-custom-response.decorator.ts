@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common";
 import CustomResponse from "../../response/custom-response";
 
-export const ApiDefaultResponseDecorator = <TModel extends Type<any>>(model: TModel) => {
+export const ApiCustomResponseDecorator = <TModel extends Type<any>>(model: TModel) => {
     return applyDecorators(
         ApiExtraModels(CustomResponse, model), ApiResponse({
             schema: {
