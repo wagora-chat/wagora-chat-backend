@@ -8,11 +8,34 @@ generator client {
 }
 
 model Member {
-  id       BigInt @id @default(autoincrement())
-  email    String @unique @db.VarChar(50)
-  nickname String @unique @db.VarChar(20)
-  password String @db.VarChar(100)
-  profile  String @db.VarChar(100)
+  id              BigInt       @id @default(autoincrement())
+  email           String       @unique @db.VarChar(50)
+  nickname        String       @unique @db.VarChar(20)
+  password        String       @db.VarChar(100)
+  profile         String       @db.VarChar(100)
+  managedChatRoom ChatRoom[]
+  memberRoom      MemberRoom[]
 
   @@map("member")
+}
+
+model ChatRoom {
+  id            BigInt       @id @default(autoincrement())
+  name          String       @db.VarChar(100)
+  color         String       @db.VarChar(30)
+  managedMember Member       @relation(fields: [managerId], references: [id])
+  managerId     BigInt       @map("manager_id")
+  MemberRoom    MemberRoom[]
+
+  @@map("chat_room")
+}
+
+model MemberRoom {
+  roomId   BigInt   @map("room_id")
+  memberId BigInt   @map("member_id")
+  member   Member   @relation(fields: [memberId], references: [id])
+  room     ChatRoom @relation(fields: [roomId], references: [id])
+
+  @@id([roomId, memberId])
+  @@map("member_room")
 }
