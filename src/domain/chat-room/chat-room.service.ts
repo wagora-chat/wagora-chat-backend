@@ -8,6 +8,7 @@ import {
 import {
     Member,
     PrismaClient,
+    Prisma,
 } from "@prisma/client";
 import {
     CreateChatRoomResponseDto,
@@ -21,6 +22,13 @@ import {
 import {
     ResponseStatus,
 } from "../../response/response-status";
+
+type ChatRoom = {
+    id: bigint | string,
+    name: string,
+    color: string,
+    memberCount: bigint
+}
 
 @Injectable()
 export class ChatRoomService {
@@ -58,6 +66,48 @@ export class ChatRoomService {
             };
         } catch (error) {
             // FIXME: Prisma Exception을 잡을 수 없는 문제가 있음 HttpExceptionFilter 확장 필요
+            throw new BadRequestException("Prisma Error", ResponseStatus.CHAT_ROOM_F001);
+        }
+    }
+
+    async getChatRoomList(memberId: bigint, name?: string, members?: string) {
+        try {
+
+            let whereClause: string =
+                `where m.room_id in (select room_id from member_room where member_id = ${memberId})`;
+
+            if (name) {
+                whereClause += ` and name LIKE '%${name}%'`;
+            } else if (members && members.length > 0) {
+                const memberIds: string = members!
+                    .split(",")
+                    .map(id => Number(id))
+                    .join(", ");
+
+                whereClause += ` and m.room_id in (select room_id from member_room where room_id in (${memberIds}))`;
+            }
+
+            const query = `
+            select c.id as id,
+                   c.name as name,
+                   c.color as color,
+                   count(m.*) as "memberCount"
+            from chat_room c join member_room m on c.id = m.room_id
+            ${whereClause}
+            group by c.id
+            `;
+
+            const chatRooms: ChatRoom[] = await this.prisma.$queryRawUnsafe(query);
+
+            return chatRooms.map(chatRoom => {
+                return {
+                    id: chatRoom.id.toString(),
+                    name: chatRoom.name,
+                    color: chatRoom.color,
+                    memberCount: chatRoom.memberCount.toString(),
+                };
+            });
+        } catch (error) {
             throw new BadRequestException("Prisma Error", ResponseStatus.CHAT_ROOM_F001);
         }
     }

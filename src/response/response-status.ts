@@ -21,6 +21,7 @@ export const ResponseStatus = {
     FILE_S001: createResponseStatus("FILE_S001", "POST /files"),
     CHAT_ROOM_F001: createResponseStatus("CHAT_ROOM_F001", "Prisma Error"),
     CHAT_ROOM_S001: createResponseStatus("CHAT_ROOM_S001", "POST /chat-rooms"),
+    CHAT_ROOM_S002: createResponseStatus("CHAT_ROOM_S002", "GET /chat-rooms"),
 } as const;
 export type ResponseStatusType = {
     code: string,
