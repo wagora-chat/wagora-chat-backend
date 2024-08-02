@@ -1,5 +1,5 @@
 import {
-    Controller, Post, Body, UseGuards, Request, HttpCode, HttpStatus,
+    Controller, Post, Body, UseGuards, Request, HttpCode, HttpStatus, Get, Query,
 } from "@nestjs/common";
 import {
     ChatRoomService,
@@ -56,8 +56,22 @@ export class ChatRoomController {
         );
     }
 
-}
+    @ApiOperation({
+        summary: "채팅방 목록 조회 API",
+        description: "요청한 회원이 포함된 채팅방을 조건에 맞게 조회할 수 있다.",
+    })
+    @HttpCode(HttpStatus.OK)
+    @Get()
+    async getChatRoomList(@GetMember() member: Member,
+                          @Query("name") name?: string,
+                          @Query("members") members?: string) {
+        const result = await this.chatRoomService.getChatRoomList(
+            member.id, name, members
+        );
 
-export interface AuthenticatedRequest extends Request {
-    user: Member
+        return new CustomResponse(
+            ResponseStatus.CHAT_ROOM_S002, result
+        );
+    }
+
 }
