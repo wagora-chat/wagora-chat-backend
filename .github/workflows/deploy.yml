@@ -33,10 +33,10 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key -t $EC2_USER@$EC2_HOST << 'EOF'
             pwd
-            cd /home/ubuntu/wagora-backend/wagora-chat-backend/
+            cd $EC2_PATH
             git pull origin main
-            prpm install
-            prpm build
+            pnpm install
+            pnpm build
             pm2 restart all
           EOF
 
