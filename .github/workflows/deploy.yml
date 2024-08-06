@@ -31,7 +31,10 @@ jobs:
       - name: Deploy to EC2
         run: |
           ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key -t $EC2_USER@$EC2_HOST << 'EOF'
-            pwd
+            
+            export PATH=$PATH:/home/ubuntu/.nvm/versions/node/v20.12.2/bin
+            export PATH=$PATH:/home/ubuntu/.local/share/pnpm
+
             cd /home/ubuntu/wagora-backend/wagora-chat-backend/
             git pull origin main
             pnpm install
