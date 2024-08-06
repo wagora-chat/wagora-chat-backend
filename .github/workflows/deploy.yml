@@ -42,7 +42,8 @@ jobs:
             pm2 restart all
           EOF
 
-      - name: Remove SSH key
+      - name: Ensure SSH agent is running and remove SSH key
         run: |
+          eval $(ssh-agent -s)
           ssh-add -D
           rm -f /tmp/ssh_key
