@@ -31,7 +31,7 @@ jobs:
 
       - name: Deploy to EC2
         run: |
-          ssh $EC2_USER@$EC2_HOST << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key -t $EC2_USER@$EC2_HOST << 'EOF'
             cd $EC2_PATH
             git pull origin main
             prpm install
