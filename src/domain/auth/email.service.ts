@@ -1,5 +1,9 @@
 import * as nodemailer from "nodemailer";
 import {
+    PrismaClient,
+} from "@prisma/client";
+import {
+    Inject,
     Injectable,
 } from "@nestjs/common";
 import {
@@ -30,6 +34,23 @@ import {
 import {
     ResponseStatus,
 } from "../../response/response-status";
+import {
+    SendTempPasswordRequestDto,
+} from "./dto/req/send-temp-password.request.dto";
+import {
+    generateRandomPasswordFunction,
+} from "../../util/func/random-password.function";
+import SendTempPasswordResponseDto from "./dto/res/send-temp-password.response.dto";
+import {
+    PrismaConfig,
+} from "../../prisma/prisma.config";
+import InvalidEmailException from "../../exception/invalid-email.exception";
+import {
+    hashPassword,
+} from "../../util/func/hash-password.function";
+import {
+    getEmailTemplate,
+} from "../../util/func/email-templates.func";
 
 interface EmailOptions {
     from: string;
@@ -45,9 +66,11 @@ export class EmailService {
     private validateLimitTime: number;
     private signupLimitTime: number;
     private validateEmailPrefix: string = "validateEmail-";
+    private tempPasswordPrefix: string = "tempPassword-";
 
     constructor(
         @InjectRedis() private readonly client: Redis,
+        @Inject(PrismaConfig) private readonly prisma: PrismaClient,
         configService: ConfigService
     ) {
         this.hostAccount = configService.get<string>("EMAIL_ACCOUNT") ?? "";
@@ -105,5 +128,58 @@ export class EmailService {
             email: request.email,
         };
 
+    }
+
+    /**
+     * 임시 비밀번호 전송
+     * @param request
+     */
+    async sendTempPassword(request: SendTempPasswordRequestDto): Promise<SendTempPasswordResponseDto> {
+        const tempPassword = generateRandomPasswordFunction().toString();
+        const hashedPassword = await hashPassword(tempPassword);
+
+        await this.prisma.member.update({
+            where: {
+                email: request.email,
+            },
+            data: {
+                password: hashedPassword,
+            },
+        });
+
+        await this.client.set(request.email, hashedPassword);
+        const emailOptions: EmailOptions = {
+            from: this.hostAccount,
+            to: request.email,
+            subject: "Wagora Temporary Password",
+            html: getEmailTemplate(tempPassword),
+        };
+
+        await this.transporter.sendMail(emailOptions);
+
+        const memberId = await this.getMemberIdByEmail(request.email);
+
+        return new SendTempPasswordResponseDto(memberId);
+    }
+
+    /**
+     * 이메일로 멤버 ID 조회
+     * @param email
+     */
+    async getMemberIdByEmail(email: string): Promise<string> {
+        const member = await this.prisma.member.findUnique({
+            where: {
+                email,
+            },
+            select: {
+                id: true,
+            },
+        });
+
+        if (!member) {
+            throw new InvalidEmailException();
+        }
+
+        return member.id.toString();
     }
 }
