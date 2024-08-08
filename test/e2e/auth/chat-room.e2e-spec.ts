@@ -60,6 +60,9 @@ import {
 import {
     ErrorDataDto,
 } from "../../../src/response/error-data.dto";
+import {
+    chatRoomFixture,
+} from "../../fixture/entity/chat-room.fixture";
 
 describe("ChatRoom Test (e2e)", () => {
     let app: INestApplication<any>;
@@ -94,15 +97,16 @@ describe("ChatRoom Test (e2e)", () => {
         configService = module.get<ConfigService>(ConfigService);
         jwtService = module.get<JwtService>(JwtService);
         redisClient = module.get<Redis>(getRedisToken("default"));
+        console.log(redisClient);
         app = module.createNestApplication();
         app.useGlobalFilters(new HttpExceptionFilter());
         await app.init();
     });
 
     afterAll(async () => {
-        await app.close();
         await redisContainer.stop();
         await postgresContainer.stop();
+        await app.close();
     });
 
     beforeEach(async () => {
@@ -276,5 +280,98 @@ describe("ChatRoom Test (e2e)", () => {
 
             });
         });
+
+        describe("인가된 Token의 사용자가 요청하면,", () => {
+            describe("Query Param을 전달하지 않으면, ", () => {
+                it("회원이 속해있는 전체 채팅방 목록이 반환된다.", async () => {
+                    // given
+                    const currentPassword = generateRandomPasswordFunction();
+                    const encryptedPassword = await bcrypt.hash(currentPassword, await bcrypt.genSalt());
+                    const member = memberFixture(encryptedPassword);
+                    const storeMember = await prismaConfig.member.create({
+                        data: member,
+                    });
+
+                    const randomNumber = Math.ceil(Math.random() * 20);
+                    const members = [];
+                    for (let i = 0; i < randomNumber; i++) {
+                        const randomMember = memberRandomFixture(
+                            await bcrypt.hash(generateRandomPasswordFunction(), await bcrypt.genSalt()), i
+                        );
+                        const storedRandomMember = await prismaConfig.member.create({
+                            data: randomMember,
+                        });
+                        members.push(storedRandomMember);
+                    }
+
+                    const chatRoomName = "Algorithm";
+                    for (let i = 0; i < randomNumber; i++) {
+                        let chatRoom;
+                        if (i % 2 === 0) {
+                            chatRoom = chatRoomFixture(chatRoomName, storeMember.id, members.map(member => member.id));
+                        } else {
+                            chatRoom = chatRoomFixture(chatRoomName, members[i].id, members.map(member => member.id));
+                        }
+
+                        // await prismaConfig.chatRoom.create({
+                        //     data: chatRoom,
+                        // });
+                    }
+
+                    const token = jwtService.sign({
+                        sub: storeMember.id.toString(),
+                    }, {
+                        secret: configService.get<string>("JWT_SECRET_KEY") ?? "secret",
+                    });
+                });
+            });
+        });
     });
+    // describe("getChatRoomList", () => {
+    //     describe("인가된 Token의 사용자가 요청하면,", () => {
+    //         describe("Query Param을 전달하지 않으면, ", () => {
+    //             it("회원이 속해있는 전체 채팅방 목록이 반환된다.", async () => {
+    //                 // given
+    //                 const currentPassword = generateRandomPasswordFunction();
+    //                 const encryptedPassword = await bcrypt.hash(currentPassword, await bcrypt.genSalt());
+    //                 const member = memberFixture(encryptedPassword);
+    //                 const storeMember = await prismaConfig.member.create({
+    //                     data: member,
+    //                 });
+    //
+    //                 const randomNumber = Math.ceil(Math.random() * 20);
+    //                 const members = [];
+    //                 for (let i = 0; i < randomNumber; i++) {
+    //                     const randomMember = memberRandomFixture(
+    //                         await bcrypt.hash(generateRandomPasswordFunction(), await bcrypt.genSalt()), i
+    //                     );
+    //                     const storedRandomMember = await prismaConfig.member.create({
+    //                         data: randomMember,
+    //                     });
+    //                     members.push(storedRandomMember);
+    //                 }
+    //
+    //                 const chatRoomName = "Algorithm";
+    //                 for (let i = 0; i < randomNumber; i++) {
+    //                     let chatRoom;
+    //                     if (i % 2 === 0) {
+    //                         chatRoom = chatRoomFixture(chatRoomName, storeMember.id, members.map(member => member.id));
+    //                     } else {
+    //                         chatRoom = chatRoomFixture(chatRoomName, members[i].id, members.map(member => member.id));
+    //                     }
+    //
+    //                     // await prismaConfig.chatRoom.create({
+    //                     //     data: chatRoom,
+    //                     // });
+    //                 }
+    //
+    //                 const token = jwtService.sign({
+    //                     sub: storeMember.id.toString(),
+    //                 }, {
+    //                     secret: configService.get<string>("JWT_SECRET_KEY") ?? "secret",
+    //                 });
+    //             });
+    //         });
+    //     });
+    // });
 });
