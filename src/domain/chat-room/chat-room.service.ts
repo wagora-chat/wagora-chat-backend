@@ -22,6 +22,7 @@ import {
 import {
     ResponseStatus,
 } from "../../response/response-status";
+import GetChatRoomListResponseDto from "./dto/response/get-chat-room-list.response.dto";
 
 type ChatRoom = {
     id: bigint | string,
@@ -70,41 +71,46 @@ export class ChatRoomService {
         }
     }
 
-    async getChatRoomList(memberId: bigint, name?: string, members?: string) {
+    async getChatRoomList(memberId: bigint, name?: string, members?: string[]): Promise<GetChatRoomListResponseDto[]> {
         try {
+            const memberRooms = await this.prisma.memberRoom.findMany({
+                where: {
+                    memberId: memberId,
+                },
+                select: {
+                    roomId: true,
+                },
+            });
 
-            let whereClause: string =
-                `where m.room_id in (select room_id from member_room where member_id = ${memberId})`;
+            const roomIds = memberRooms.map((mr) => mr.roomId);
 
-            if (name) {
-                whereClause += ` and name LIKE '%${name}%'`;
-            } else if (members && members.length > 0) {
-                const memberIds: string = members!
-                    .split(",")
-                    .map(id => Number(id))
-                    .join(", ");
-
-                whereClause += ` and m.room_id in (select room_id from member_room where room_id in (${memberIds}))`;
-            }
-
-            const query = `
-            select c.id as id,
-                   c.name as name,
-                   c.color as color,
-                   count(m.*) as "memberCount"
-            from chat_room c join member_room m on c.id = m.room_id
-            ${whereClause}
-            group by c.id
-            `;
-
-            const chatRooms: ChatRoom[] = await this.prisma.$queryRawUnsafe(query);
+            const chatRooms = await this.prisma.chatRoom.findMany({
+                where: {
+                    id: {
+                        in: roomIds, 
+                    },
+                    name: name ? {
+                        contains: name, 
+                    } : undefined,
+                    MemberRoom: members ? {
+                        some: {
+                            memberId: {
+                                in: members.map(id => Number(id)),
+                            },
+                        },
+                    } : undefined,
+                },
+                include: {
+                    MemberRoom: true,
+                },
+            });
 
             return chatRooms.map(chatRoom => {
                 return {
                     id: chatRoom.id.toString(),
                     name: chatRoom.name,
                     color: chatRoom.color,
-                    memberCount: chatRoom.memberCount.toString(),
+                    memberCount: chatRoom.MemberRoom.length,
                 };
             });
         } catch (error) {

@@ -1,5 +1,5 @@
 import {
-    Controller, Post, Body, UseGuards, Request, HttpCode, HttpStatus, Get, Query,
+    Body, Controller, Get, HttpCode, HttpStatus, Post, Query, UseGuards,
 } from "@nestjs/common";
 import {
     ChatRoomService,
@@ -8,8 +8,7 @@ import {
     CreateChatRoomRequestDto,
 } from "./dto/request/create-chat-room.request.dto";
 import {
-    ApiBearerAuth,
-    ApiOperation, ApiTags,
+    ApiBearerAuth, ApiOperation, ApiTags,
 } from "@nestjs/swagger";
 import {
     ApiCustomResponseDecorator,
@@ -30,6 +29,9 @@ import {
 import {
     Member,
 } from "@prisma/client";
+import GetChatRoomQueryPipe from "./pipe/get-chat-room-query.pipe";
+import GetChatRoomQueryDto from "./dto/request/get-chat-room.query.dto";
+import GetChatRoomListResponseDto from "./dto/response/get-chat-room-list.response.dto";
 
 @ApiTags("ChatRoom")
 @UseGuards(JwtGuard)
@@ -60,13 +62,13 @@ export class ChatRoomController {
         summary: "채팅방 목록 조회 API",
         description: "요청한 회원이 포함된 채팅방을 조건에 맞게 조회할 수 있다.",
     })
+    @ApiCustomResponseDecorator(Array<GetChatRoomListResponseDto>)
     @HttpCode(HttpStatus.OK)
     @Get()
     async getChatRoomList(@GetMember() member: Member,
-                          @Query("name") name?: string,
-                          @Query("members") members?: string) {
+                          @Query(GetChatRoomQueryPipe) params: GetChatRoomQueryDto) {
         const result = await this.chatRoomService.getChatRoomList(
-            member.id, name, members
+            member.id, params.name, params.members
         );
 
         return new CustomResponse(

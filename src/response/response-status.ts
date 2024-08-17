@@ -20,6 +20,7 @@ export const ResponseStatus = {
     AUTH_S006: createResponseStatus("AUTH_S006", "GET /auth/login"),
     FILE_S001: createResponseStatus("FILE_S001", "POST /files"),
     CHAT_ROOM_F001: createResponseStatus("CHAT_ROOM_F001", "Prisma Error"),
+    CHAT_ROOM_F002: createResponseStatus("CHAT_ROOM_F002", "Invalid Query Params"),
     CHAT_ROOM_S001: createResponseStatus("CHAT_ROOM_S001", "POST /chat-rooms"),
     CHAT_ROOM_S002: createResponseStatus("CHAT_ROOM_S002", "GET /chat-rooms"),
 } as const;
