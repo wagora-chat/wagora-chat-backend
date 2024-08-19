@@ -48,9 +48,6 @@ import {
     CreateChatRoomRequestDto,
 } from "../../../src/domain/chat-room/dto/request/create-chat-room.request.dto";
 import {
-    Member,
-} from "@prisma/client";
-import {
     CreateChatRoomResponseDto,
 } from "../../../src/domain/chat-room/dto/response/create-chat-room.response.dto";
 import CustomResponse from "src/response/custom-response";
