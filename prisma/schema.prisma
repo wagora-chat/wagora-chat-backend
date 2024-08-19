@@ -7,14 +7,31 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model File {
+  id            BigInt    @id @default(autoincrement())
+  name          String    @db.VarChar(255)
+  url           String    @db.VarChar(255)
+  size          BigInt
+  mime          String    @db.VarChar(50)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  memberId      BigInt    @map("member_id")
+  member        Member    @relation("Member", fields: [memberId], references: [id])
+  profileMember Member?   @relation("ProfileFile")
+  RoomFile      RoomFile?
+
+  @@map("file")
+}
+
 model Member {
   id              BigInt       @id @default(autoincrement())
   email           String       @unique @db.VarChar(50)
   nickname        String       @unique @db.VarChar(20)
   password        String       @db.VarChar(100)
-  profile         String       @db.VarChar(100)
   managedChatRoom ChatRoom[]
   memberRoom      MemberRoom[]
+  files           File[]       @relation("Member")
+  fileId          BigInt?      @unique @map("file_id")
+  profileFile     File?        @relation("ProfileFile", fields: [fileId], references: [id])
 
   @@map("member")
 }
@@ -26,6 +43,7 @@ model ChatRoom {
   managedMember Member       @relation(fields: [managerId], references: [id])
   managerId     BigInt       @map("manager_id")
   MemberRoom    MemberRoom[]
+  RoomFile      RoomFile[]
 
   @@map("chat_room")
 }
@@ -38,4 +56,14 @@ model MemberRoom {
 
   @@id([roomId, memberId])
   @@map("member_room")
+}
+
+model RoomFile {
+  roomId BigInt   @map("room_id")
+  fileId BigInt   @unique @map("file_id")
+  file   File     @relation(fields: [fileId], references: [id])
+  room   ChatRoom @relation(fields: [roomId], references: [id])
+
+  @@id([fileId, roomId])
+  @@map("room_file")
 }
