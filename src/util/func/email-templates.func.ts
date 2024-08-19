@@ -17,7 +17,7 @@ export function getEmailTemplate(tempPassword: string): string {
                     border-bottom: 2px solid #f2f2f2;
                     padding-bottom: 10px;
                 ">
-                    임시 비밀번호 안내
+                    Wagora 임시 비밀번호
                 </h2>
                 <p style="
                     font-size: 16px;

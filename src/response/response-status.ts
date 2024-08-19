@@ -12,6 +12,8 @@ export const ResponseStatus = {
     AUTH_F004: createResponseStatus("AUTH_F004", "Login Failed"),
     AUTH_F005: createResponseStatus("AUTH_F005", "Invalid Access Token"),
     AUTH_F006: createResponseStatus("AUTH_F006", "Invalid JWT"),
+    AUTH_F007: createResponseStatus("AUTH_F007", "Member Not Exists"),
+    AUTH_F008: createResponseStatus("AUTH_F008", "Invalid Email in to send temp password"),
     AUTH_S001: createResponseStatus("AUTH_S001", "POST /auth/signup"),
     AUTH_S002: createResponseStatus("AUTH_S002", "POST /auth/emails"),
     AUTH_S003: createResponseStatus("AUTH_S003", "POST /auth/emails/confirm"),
