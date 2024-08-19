@@ -74,7 +74,7 @@ export default class AuthService {
 
         const validatedEmail: string | null = await this.client.get(signupRequestDto.email);
         if (!validatedEmail) {
-            throw new InvalidEmailException();
+            throw new InvalidEmailException(ResponseStatus.AUTH_F003);
         }
         await this.client.del(signupRequestDto.email);
 
