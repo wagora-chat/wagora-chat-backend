@@ -38,7 +38,7 @@ import {
     ResponseStatus,
 } from "../../response/response-status";
 
-type ExistsMember = Member | null;
+export type ExistsMember = Member | null;
 
 @Injectable()
 export default class AuthService {
@@ -74,7 +74,7 @@ export default class AuthService {
 
         const validatedEmail: string | null = await this.client.get(signupRequestDto.email);
         if (!validatedEmail) {
-            throw new InvalidEmailException();
+            throw new InvalidEmailException(ResponseStatus.AUTH_F003);
         }
         await this.client.del(signupRequestDto.email);
 
@@ -122,7 +122,7 @@ export default class AuthService {
         });
 
         if (!member || !await bcrypt.compare(loginRequestDto.password, member.password)) {
-            throw new LoginFailedException(ResponseStatus.AUTH_FO04);
+            throw new LoginFailedException(ResponseStatus.AUTH_F004);
         }
 
         const payload = {

@@ -21,6 +21,9 @@ import {
 import {
     S3Module,
 } from "./s3/s3.module";
+import {
+    ChatRoomModule,
+} from "./domain/chat-room/chat-room.module";
 
 @Module({
     imports: [
@@ -32,6 +35,7 @@ import {
         S3Module,
         AuthModule,
         PrismaModule,
+        ChatRoomModule,
         RedisModule.forRootAsync(
             {
                 imports: [ConfigModule,],

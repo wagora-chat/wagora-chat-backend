@@ -12,6 +12,9 @@ import AuthController from "./auth.controller";
 import {
     JwtModule,
 } from "@nestjs/jwt";
+import {
+    JwtStrategy,
+} from "./strategies/jwt.strategy";
 
 @Module({
     imports: [
@@ -23,9 +26,12 @@ import {
     ],
     exports: [],
     controllers: [AuthController,],
-    providers: [AuthService,
+    providers: [
+        AuthService,
         PrismaConfig,
-        EmailService,],
+        EmailService,
+        JwtStrategy,
+    ],
 })
 export default class AuthModule {
 }

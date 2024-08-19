@@ -1,5 +1,5 @@
 import {
-    Body, Controller, Get, HttpCode, HttpStatus, Post, Query,
+    Body, Controller, Get, HttpCode, HttpStatus, Patch, Post, Query,
 } from "@nestjs/common";
 import AuthService from "./auth.service";
 import SignupRequestDto from "./dto/req/signup.request.dto";
@@ -36,6 +36,10 @@ import {
 } from "../../response/response-status";
 import LoginResponseDto from "./dto/res/login.response.dto";
 import LoginRequestDto from "./dto/req/login.request.dto";
+import {
+    SendTempPasswordRequestDto,
+} from "./dto/req/send-temp-password.request.dto";
+import SendTempPasswordResponseDto from "./dto/res/send-temp-password.response.dto";
 
 @ApiTags("auth")
 @Controller("/auth")
@@ -59,10 +63,10 @@ export default class AuthController {
     async signup(
         @Body(CheckPasswordPipe) body: SignupRequestDto
     ): Promise<CustomResponse<SignupResponseDto>> {
-        const data: SignupResponseDto = await this.authService.signup(body);
+        const result: SignupResponseDto = await this.authService.signup(body);
 
         return new CustomResponse<SignupResponseDto>(
-            ResponseStatus.AUTH_S001, data
+            ResponseStatus.AUTH_S001, result
         );
     }
 
@@ -143,11 +147,27 @@ export default class AuthController {
     @HttpCode(HttpStatus.OK)
     @ApiCustomResponseDecorator(LoginResponseDto)
     @Post("/login")
-    async login(@Body() loginRequestDto: LoginRequestDto): Promise<CustomResponse<LoginResponseDto>> {
-        const result: LoginResponseDto = await this.authService.login(loginRequestDto);
+    async login(@Body() request: LoginRequestDto): Promise<CustomResponse<LoginResponseDto>> {
+        const result: LoginResponseDto = await this.authService.login(request);
 
         return new CustomResponse<LoginResponseDto>(
             ResponseStatus.AUTH_S006, result
+        );
+    }
+
+    @ApiOperation({
+        summary: "임시 비밀번호 발급 API",
+        description: "비밀번호를 재설정하고 싶은 회원은 이메일로 임시 비밀번호를 재발급 받는다.",
+    })
+    @HttpCode(HttpStatus.OK)
+    @ApiCustomResponseDecorator(SendTempPasswordResponseDto)
+    @Patch("/passwords")
+    async sendTempPassword(@Body() request: SendTempPasswordRequestDto)
+        : Promise<CustomResponse<SendTempPasswordResponseDto>> {
+        const result: SendTempPasswordResponseDto = await this.emailService.sendTempPassword(request);
+
+        return  new CustomResponse<SendTempPasswordResponseDto>(
+            ResponseStatus.AUTH_S007, result
         );
     }
 }
