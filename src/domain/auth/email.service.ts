@@ -51,6 +51,7 @@ import {
 import {
     getEmailTemplate,
 } from "../../util/func/email-templates.func";
+import MemberNotExistException from "../../exception/member-not-exist.exception";
 
 interface EmailOptions {
     from: string;
@@ -96,7 +97,7 @@ export class EmailService {
         const emailOptions: EmailOptions = {
             from: this.hostAccount,
             to: request.email,
-            subject: "Wagora Varification Code",
+            subject: "Wagora Verification Code",
             html: `<h1> Wagora 이메일 인증 </h1> <p>code: ${code}</p> </br> <p>제한 시간은 5분입니다.</p>`,
         };
         await this.transporter.sendMail(emailOptions);
@@ -132,10 +133,26 @@ export class EmailService {
 
     /**
      * 임시 비밀번호 전송
-     * @param request
+     * @param email
+     * @param code
      */
     async sendTempPassword(request: SendTempPasswordRequestDto): Promise<SendTempPasswordResponseDto> {
-        const tempPassword = generateRandomPasswordFunction().toString();
+        const validatedEmail: string | null = await this.client.get(request.email);
+        if (!validatedEmail) {
+            throw new InvalidEmailException(ResponseStatus.AUTH_F008);
+        }
+        await this.client.del(request.email);
+
+        const member = await this.prisma.member.findUnique({
+            where: {
+                email: request.email,
+            },
+        });
+        if (!member) {
+            throw new MemberNotExistException();
+        }
+
+        const tempPassword = generateRandomPasswordFunction();
         const hashedPassword = await hashPassword(tempPassword);
 
         await this.prisma.member.update({
@@ -147,7 +164,6 @@ export class EmailService {
             },
         });
 
-        await this.client.set(request.email, hashedPassword);
         const emailOptions: EmailOptions = {
             from: this.hostAccount,
             to: request.email,
@@ -157,9 +173,7 @@ export class EmailService {
 
         await this.transporter.sendMail(emailOptions);
 
-        const memberId = await this.getMemberIdByEmail(request.email);
-
-        return new SendTempPasswordResponseDto(memberId);
+        return new SendTempPasswordResponseDto(member.id.toString());
     }
 
     /**
@@ -177,7 +191,7 @@ export class EmailService {
         });
 
         if (!member) {
-            throw new InvalidEmailException();
+            throw new InvalidEmailException(ResponseStatus.AUTH_F003);
         }
 
         return member.id.toString();

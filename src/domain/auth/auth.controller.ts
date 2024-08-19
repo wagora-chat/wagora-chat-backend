@@ -1,5 +1,5 @@
 import {
-    Body, Controller, Get, HttpCode, HttpStatus, Post, Query,
+    Body, Controller, Get, HttpCode, HttpStatus, Patch, Post, Query,
 } from "@nestjs/common";
 import AuthService from "./auth.service";
 import SignupRequestDto from "./dto/req/signup.request.dto";
@@ -161,8 +161,9 @@ export default class AuthController {
     })
     @HttpCode(HttpStatus.OK)
     @ApiCustomResponseDecorator(SendTempPasswordResponseDto)
-    @Post("/passwords")
-    async sendTempPassword(@Body() request: SendTempPasswordRequestDto): Promise<CustomResponse<SendTempPasswordResponseDto>> {
+    @Patch("/passwords")
+    async sendTempPassword(@Body() request: SendTempPasswordRequestDto)
+        : Promise<CustomResponse<SendTempPasswordResponseDto>> {
         const result: SendTempPasswordResponseDto = await this.emailService.sendTempPassword(request);
 
         return  new CustomResponse<SendTempPasswordResponseDto>(
