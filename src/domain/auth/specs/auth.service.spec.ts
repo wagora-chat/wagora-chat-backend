@@ -11,12 +11,32 @@ import {
 import SignupDtoGenerator from "./generators/signup-dto.generator";
 import MemberEntityGenerator from "./generators/member-entity.generator";
 import CheckDuplicateNicknameParamsDtoGenerator from "./generators/check-duplicate-nickname.params.dto.generator";
+import {
+    getRedisToken,
+} from "@liaoliaots/nestjs-redis";
+import {
+    JwtService,
+} from "@nestjs/jwt";
+import {
+    ConfigService,
+} from "@nestjs/config";
 
 const prismaMock = {
     member: {
         findUnique: jest.fn(),
         create: jest.fn(),
     },
+};
+const clientMock = {
+    get: jest.fn(),
+    del: jest.fn(),
+};
+const jwtServiceMock = {
+    sign: jest.fn(),
+};
+
+const configServiceMock = {
+    get: jest.fn(),
 };
 
 describe("AuthService", () => {
@@ -29,6 +49,18 @@ describe("AuthService", () => {
                 {
                     provide: PrismaConfig,
                     useValue: prismaMock,
+                },
+                {
+                    provide: getRedisToken("default"),
+                    useValue: clientMock,
+                }, // Redis 클라이언트 주입
+                {
+                    provide: JwtService,
+                    useValue: jwtServiceMock,
+                },
+                {
+                    provide: ConfigService,
+                    useValue: configServiceMock,
                 },
             ],
         }).compile();
@@ -48,6 +80,7 @@ describe("AuthService", () => {
         it("새로운 회원의 아이디가 생성되어야 한다.", async () => {
             prismaMock.member.findUnique.mockResolvedValue(null);
             prismaMock.member.create.mockResolvedValue(member);
+            clientMock.get.mockResolvedValue("validate");
 
             const result = await authService.signup(signupRequestDto);
 
