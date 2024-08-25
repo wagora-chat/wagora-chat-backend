@@ -1,5 +1,5 @@
 import {
-    Body, Controller, Get, HttpCode, HttpStatus, Patch, Post, Query,
+    Body, Controller, Get, HttpCode, HttpStatus, Logger, Patch, Post, Query,
 } from "@nestjs/common";
 import AuthService from "./auth.service";
 import SignupRequestDto from "./dto/req/signup.request.dto";
@@ -44,6 +44,8 @@ import SendTempPasswordResponseDto from "./dto/res/send-temp-password.response.d
 @ApiTags("auth")
 @Controller("/auth")
 export default class AuthController {
+    private readonly logger = new Logger(AuthController.name);
+
     constructor(
         private readonly authService: AuthService,
         private readonly emailService: EmailService
@@ -63,7 +65,9 @@ export default class AuthController {
     async signup(
         @Body(CheckPasswordPipe) body: SignupRequestDto
     ): Promise<CustomResponse<SignupResponseDto>> {
+        this.logger.log("[signup] start");
         const result: SignupResponseDto = await this.authService.signup(body);
+        this.logger.log("[signup] finish");
 
         return new CustomResponse<SignupResponseDto>(
             ResponseStatus.AUTH_S001, result
@@ -82,7 +86,9 @@ export default class AuthController {
     @Post("/emails")
     async transferValidateCode(@Body() request: SendCodeToEmailRequestDto)
         : Promise<CustomResponse<SendCodeToEmailResponseDto>> {
+        this.logger.log("[transferValidateCode] start");
         const result = await this.emailService.transferValidateCode(request);
+        this.logger.log("[transferValidateCode] finish");
 
         return new CustomResponse<SendCodeToEmailResponseDto>(
             ResponseStatus.AUTH_S002, result
@@ -101,7 +107,9 @@ export default class AuthController {
     @Post("/emails/confirm")
     async confirmValidateCode(@Body() request: VerifyCodeEmailRequestDto)
         : Promise<CustomResponse<VerifyCodeEmailResponseDto>> {
+        this.logger.log("[confirmValidateCode] start");
         const result = await this.emailService.confirmValidateCode(request);
+        this.logger.log("[confirmValidateCode] finish");
 
         return new CustomResponse<VerifyCodeEmailResponseDto>(
             ResponseStatus.AUTH_S003, result
@@ -119,7 +127,9 @@ export default class AuthController {
     @ApiCustomResponseDecorator(CheckDuplicateNicknameResponseDto)
     @Get("/nicknames")
     async checkDuplicateNickname(@Query() params: CheckDuplicateNicknameParamsDto) {
+        this.logger.log("[checkDuplicateNickname] start");
         const result = await this.authService.checkDuplicateNickname(params);
+        this.logger.log("[checkDuplicateNickname] finish");
 
         return new CustomResponse<CheckDuplicateNicknameResponseDto>(
             ResponseStatus.AUTH_S004, result
@@ -133,7 +143,9 @@ export default class AuthController {
     @ApiCustomResponseDecorator(CheckDuplicateEmailResponseDto)
     @Get("/emails")
     async checkDuplicateEmail(@Query() params: CheckDuplicateEmailParamsDto) {
+        this.logger.log("[checkDuplicateEmail] start");
         const result = await this.authService.checkDuplicateEmail(params);
+        this.logger.log("[checkDuplicateEmail] finish");
 
         return new CustomResponse<CheckDuplicateEmailResponseDto>(
             ResponseStatus.AUTH_S005, result
@@ -148,7 +160,9 @@ export default class AuthController {
     @ApiCustomResponseDecorator(LoginResponseDto)
     @Post("/login")
     async login(@Body() request: LoginRequestDto): Promise<CustomResponse<LoginResponseDto>> {
+        this.logger.log("[login] start");
         const result: LoginResponseDto = await this.authService.login(request);
+        this.logger.log("[login] finish");
 
         return new CustomResponse<LoginResponseDto>(
             ResponseStatus.AUTH_S006, result
@@ -164,9 +178,11 @@ export default class AuthController {
     @Patch("/passwords")
     async sendTempPassword(@Body() request: SendTempPasswordRequestDto)
         : Promise<CustomResponse<SendTempPasswordResponseDto>> {
+        this.logger.log("[sendTempPassword] start");
         const result: SendTempPasswordResponseDto = await this.emailService.sendTempPassword(request);
+        this.logger.log("[sendTempPassword] finish");
 
-        return  new CustomResponse<SendTempPasswordResponseDto>(
+        return new CustomResponse<SendTempPasswordResponseDto>(
             ResponseStatus.AUTH_S007, result
         );
     }

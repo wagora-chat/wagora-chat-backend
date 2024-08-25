@@ -1,5 +1,5 @@
 import {
-    Body, Controller, Get, HttpCode, HttpStatus, Post, Query, UseGuards,
+    Body, Controller, Get, HttpCode, HttpStatus, Logger, Post, Query, UseGuards,
 } from "@nestjs/common";
 import {
     ChatRoomService,
@@ -38,6 +38,8 @@ import GetChatRoomListResponseDto from "./dto/response/get-chat-room-list.respon
 @ApiBearerAuth("token")
 @Controller("chat-rooms")
 export class ChatRoomController {
+    private readonly logger = new Logger(ChatRoomController.name);
+
     constructor(private readonly chatRoomService: ChatRoomService) {
     }
 
@@ -47,11 +49,12 @@ export class ChatRoomController {
     })
     @ApiCustomResponseDecorator(CreateChatRoomResponseDto)
     @HttpCode(HttpStatus.CREATED)
-
     @Post()
     async createCharRoom(@Body() createChatRoomDto: CreateChatRoomRequestDto, @GetMember() member: Member)
         : Promise<CustomResponse<CreateChatRoomResponseDto>> {
+        this.logger.log("[createCharRoom] start");
         const result = await this.chatRoomService.createChatRoom(createChatRoomDto, member);
+        this.logger.log("[createCharRoom] finish");
 
         return new CustomResponse<CreateChatRoomResponseDto>(
             ResponseStatus.CHAT_ROOM_S001, result
@@ -67,9 +70,11 @@ export class ChatRoomController {
     @Get()
     async getChatRoomList(@GetMember() member: Member,
                           @Query(GetChatRoomQueryPipe) params: GetChatRoomQueryDto) {
+        this.logger.log("[getChatRoomList] start");
         const result = await this.chatRoomService.getChatRoomList(
             member.id, params.name, params.members
         );
+        this.logger.log("[getChatRoomList] finish");
 
         return new CustomResponse(
             ResponseStatus.CHAT_ROOM_S002, result
