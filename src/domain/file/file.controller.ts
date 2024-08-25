@@ -2,7 +2,7 @@ import {
     FileService,
 } from "./file.service";
 import {
-    Controller, HttpCode, HttpStatus,
+    Controller, HttpCode, HttpStatus, Logger,
     Post, UploadedFile, UseInterceptors,
 } from "@nestjs/common";
 import CustomResponse from "../../response/custom-response";
@@ -28,6 +28,7 @@ import {
 @ApiTags("files")
 @Controller("files")
 export class FileController {
+    private readonly logger = new Logger(FileController.name);
     constructor(private readonly fileService: FileService) {
     }
 
@@ -41,8 +42,10 @@ export class FileController {
     @HttpCode(HttpStatus.CREATED)
     @Post()
     async fileUpload(@UploadedFile() file: Express.Multer.File): Promise<CustomResponse<FileUploadResponseDto>> {
+        this.logger.log("[getChatRoomList] start");
         const result = await this.fileService.fileUpload(file);
-        
+        this.logger.log("[getChatRoomList] end");
+
         return new CustomResponse(ResponseStatus.FILE_S001, {
             filePath: result,
         });
