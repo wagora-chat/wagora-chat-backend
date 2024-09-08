@@ -470,7 +470,7 @@ describe("ChatRoom Test (e2e)", () => {
                     });
 
                     describe("혼자 남지 않은 경우,", () => {
-                        it("채팅방을 나가고, 채팅방도 삭제해야 한다. ", async () => {
+                        it("혼자 남지 않으면 채팅방을 나갈 수 없는 예외를 발생시켜야 한다. ", async () => {
                             // given
                             const currentPassword = generateRandomPasswordFunction();
                             const encryptedPassword = await bcrypt.hash(currentPassword, await bcrypt.genSalt());
