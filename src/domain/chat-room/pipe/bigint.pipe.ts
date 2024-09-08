@@ -6,11 +6,10 @@ import {
 @Injectable()
 export class BigIntPipe implements PipeTransform {
     transform(value: string) {
-        const result = BigInt(value);
-        if (isNaN(Number(result))) {
+        try {
+            return BigInt(value);
+        } catch (e) {
             throw new InvalidParamsException();
         }
-
-        return result;
     }
 }
