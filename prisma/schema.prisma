@@ -14,9 +14,9 @@ model File {
   size          BigInt
   mime          String    @db.VarChar(50)
   createdAt     DateTime  @default(now()) @map("created_at")
-  memberId      BigInt    @map("member_id")
-  member        Member    @relation("Member", fields: [memberId], references: [id])
-  profileMember Member?   @relation("ProfileFile")
+  memberId      BigInt?   @map("member_id")
+  member        Member?   @relation("Member", fields: [memberId], references: [id])
+  profileMember Member[]  @relation("ProfileFile")
   RoomFile      RoomFile?
 
   @@map("file")
@@ -27,12 +27,12 @@ model Member {
   email           String       @unique @db.VarChar(50)
   nickname        String       @unique @db.VarChar(20)
   password        String       @db.VarChar(100)
-  profile         String       @db.VarChar(100)
   managedChatRoom ChatRoom[]
   memberRoom      MemberRoom[]
   files           File[]       @relation("Member")
-  fileId          BigInt?      @unique @map("file_id")
-  profileFile     File?        @relation("ProfileFile", fields: [fileId], references: [id])
+  fileId          BigInt       @map("file_id")
+  profileFile     File         @relation("ProfileFile", fields: [fileId], references: [id])
+  Chat            Chat[]
 
   @@map("member")
 }
@@ -45,6 +45,7 @@ model ChatRoom {
   managerId     BigInt       @map("manager_id")
   MemberRoom    MemberRoom[]
   RoomFile      RoomFile[]
+  Chat          Chat[]
 
   @@map("chat_room")
 }
@@ -67,4 +68,16 @@ model RoomFile {
 
   @@id([fileId, roomId])
   @@map("room_file")
+}
+
+model Chat {
+  id        BigInt   @id @default(autoincrement())
+  message   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  memberId  BigInt   @map("member_id")
+  member    Member   @relation(fields: [memberId], references: [id])
+  roomId    BigInt   @map("room_id")
+  room      ChatRoom @relation(fields: [roomId], references: [id])
+
+  @@map("chat")
 }

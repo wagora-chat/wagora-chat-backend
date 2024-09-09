@@ -12,3 +12,13 @@ export const GetMember = createParamDecorator(
         return req.user;
     }
 );
+
+export const GetChatMember = createParamDecorator(
+    (data, ctx: ExecutionContext):Member => {
+        const req = ctx.switchToWs().getClient();
+
+        console.log(req);
+
+        return req.user;
+    }
+);

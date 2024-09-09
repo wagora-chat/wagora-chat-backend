@@ -33,6 +33,9 @@ export const ResponseStatus = {
     CHAT_ROOM_S002: createResponseStatus("CHAT_ROOM_S002", "GET /chat-rooms"),
     CHAT_ROOM_S003: createResponseStatus("CHAT_ROOM_S003", "DELETE /chat-rooms"),
     CHAT_ROOM_S004: createResponseStatus("CHAT_ROOM_S004", "POST /chat-rooms/:id"),
+    CHAT_F001: createResponseStatus("CHAT_F001", "Member Not Exists"),
+    CHAT_F002: createResponseStatus("CHAT_F002", "Chat Room Not Exists"),
+    CHAT_F003: createResponseStatus("CHAT_F003", "Invalid Request to Send Chat"),
 } as const;
 export type ResponseStatusType = {
     code: string,

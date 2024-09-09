@@ -78,12 +78,14 @@ export default class AuthService {
         }
         await this.client.del(signupRequestDto.email);
 
+        const fileId = signupRequestDto.profile ? signupRequestDto.profile : 1;
+
         const member: Member = await this.prisma.member.create({
             data: {
                 email: signupRequestDto.email,
                 password: await bcrypt.hash(signupRequestDto.password, 10),
                 nickname: signupRequestDto.nickname,
-                profile: signupRequestDto.profile,
+                fileId: fileId,
             },
         });
 
