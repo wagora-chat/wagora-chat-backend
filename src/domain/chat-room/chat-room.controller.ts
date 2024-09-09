@@ -1,5 +1,5 @@
 import {
-    Body, Controller, Get, HttpCode, HttpStatus, Logger, Post, Query, UseGuards,
+    Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Post, Query, UseGuards,
 } from "@nestjs/common";
 import {
     ChatRoomService,
@@ -32,6 +32,12 @@ import {
 import GetChatRoomQueryPipe from "./pipe/get-chat-room-query.pipe";
 import GetChatRoomQueryDto from "./dto/request/get-chat-room.query.dto";
 import GetChatRoomListResponseDto from "./dto/response/get-chat-room-list.response.dto";
+import {
+    LeaveChatRoomResponseDto,
+} from "./dto/response/leave-chat-room.response.dto";
+import {
+    BigIntPipe,
+} from "./pipe/bigint.pipe";
 
 @ApiTags("ChatRoom")
 @UseGuards(JwtGuard)
@@ -50,7 +56,7 @@ export class ChatRoomController {
     @ApiCustomResponseDecorator(CreateChatRoomResponseDto)
     @HttpCode(HttpStatus.CREATED)
     @Post()
-    async createCharRoom(@Body() createChatRoomDto: CreateChatRoomRequestDto, @GetMember() member: Member)
+    async createChatRoom(@Body() createChatRoomDto: CreateChatRoomRequestDto, @GetMember() member: Member)
         : Promise<CustomResponse<CreateChatRoomResponseDto>> {
         this.logger.log("[createCharRoom] start");
         const result = await this.chatRoomService.createChatRoom(createChatRoomDto, member);
@@ -78,6 +84,23 @@ export class ChatRoomController {
 
         return new CustomResponse(
             ResponseStatus.CHAT_ROOM_S002, result
+        );
+    }
+
+    @ApiOperation({
+        summary: "채팅방 나가기, 삭제 API",
+        description: "채팅방 id를 기반으로 본인이 채팅방에서 나갈 수 있다.",
+    })
+    @ApiCustomResponseDecorator(LeaveChatRoomResponseDto)
+    @HttpCode(HttpStatus.OK)
+    @Delete(":id")
+    async leaveChatRoom(@Param("id", BigIntPipe) id: bigint, @GetMember() member: Member) {
+        this.logger.log("[leaveChatRoom] start");
+        const result = await this.chatRoomService.leaveChatRoom(id, member);
+        this.logger.log("[leaveChatRoom] finish");
+
+        return new CustomResponse(
+            ResponseStatus.CHAT_ROOM_S003, result
         );
     }
 

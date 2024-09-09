@@ -24,8 +24,12 @@ export const ResponseStatus = {
     FILE_S001: createResponseStatus("FILE_S001", "POST /files"),
     CHAT_ROOM_F001: createResponseStatus("CHAT_ROOM_F001", "Prisma Error"),
     CHAT_ROOM_F002: createResponseStatus("CHAT_ROOM_F002", "Invalid Query Params"),
+    CHAT_ROOM_F003: createResponseStatus("CHAT_ROOM_F003", "Not found chatroom"),
+    CHAT_ROOM_F004: createResponseStatus("CHAT_ROOM_F004", "Not found member in chatroom"),
+    CHAT_ROOM_F005: createResponseStatus("CHAT_ROOM_F005", "Manager doesn't leave chatroom until only one left"),
     CHAT_ROOM_S001: createResponseStatus("CHAT_ROOM_S001", "POST /chat-rooms"),
     CHAT_ROOM_S002: createResponseStatus("CHAT_ROOM_S002", "GET /chat-rooms"),
+    CHAT_ROOM_S003: createResponseStatus("CHAT_ROOM_S003", "DELETE /chat-rooms"),
 } as const;
 export type ResponseStatusType = {
     code: string,
