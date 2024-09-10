@@ -64,6 +64,9 @@ import GetChatRoomListResponseDto from "../../../src/domain/chat-room/dto/respon
 import {
     LeaveChatRoomResponseDto,
 } from "../../../src/domain/chat-room/dto/response/leave-chat-room.response.dto";
+import {
+    fileFixture,
+} from "../../fixture/entity/file.fixture";
 
 describe("ChatRoom Test (e2e)", () => {
     let app: INestApplication<any>;
@@ -111,6 +114,9 @@ describe("ChatRoom Test (e2e)", () => {
 
     beforeEach(async () => {
         await redisClient.reset();
+        await prismaConfig.file.create({
+            data: fileFixture(),
+        });
         await prismaConfig.memberRoom.deleteMany({});
         await prismaConfig.chatRoom.deleteMany({});
         await prismaConfig.member.deleteMany({});
