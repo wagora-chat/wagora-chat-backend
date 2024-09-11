@@ -27,7 +27,6 @@ model Member {
   email           String       @unique @db.VarChar(50)
   nickname        String       @unique @db.VarChar(20)
   password        String       @db.VarChar(100)
-  profile         String       @db.VarChar(100)
   managedChatRoom ChatRoom[]
   memberRoom      MemberRoom[]
   files           File[]       @relation("Member")
