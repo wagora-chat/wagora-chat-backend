@@ -38,6 +38,12 @@ import {
 import {
     BigIntPipe,
 } from "./pipe/bigint.pipe";
+import {
+    InviteChatRoomResponseDto,
+} from "./dto/response/invite-chat-room.response.dto";
+import {
+    InviteChatRoomRequestDto,
+} from "./dto/request/invite-chat-room.request.dto";
 
 @ApiTags("ChatRoom")
 @UseGuards(JwtGuard)
@@ -58,12 +64,36 @@ export class ChatRoomController {
     @Post()
     async createChatRoom(@Body() createChatRoomDto: CreateChatRoomRequestDto, @GetMember() member: Member)
         : Promise<CustomResponse<CreateChatRoomResponseDto>> {
-        this.logger.log("[createCharRoom] start");
+        this.logger.log("[createChatRoom] start");
         const result = await this.chatRoomService.createChatRoom(createChatRoomDto, member);
-        this.logger.log("[createCharRoom] finish");
+        this.logger.log("[createChatRoom] finish");
 
         return new CustomResponse<CreateChatRoomResponseDto>(
             ResponseStatus.CHAT_ROOM_S001, result
+        );
+    }
+
+    @ApiOperation({
+        summary: "채팅방 초대 API",
+        description: "회원 ID로 채팅방에 회원을 초대할 수 있다.",
+    })
+    @ApiCustomResponseDecorator(InviteChatRoomResponseDto)
+    @UseGuards(JwtGuard)
+    @HttpCode(HttpStatus.OK)
+    @Post("/:id")
+    async inviteChatRoom(
+        @Param("id", BigIntPipe) chatRoomId: bigint,
+        @Body() body: InviteChatRoomRequestDto,
+        @GetMember() member: Member
+    ): Promise<CustomResponse<InviteChatRoomResponseDto>> {
+        this.logger.log("[inviteChatRoom] start");
+
+        const result = await this.chatRoomService.inviteChatRoom(chatRoomId, body.ids, member.id);
+
+        this.logger.log("[inviteChatRoom] finish");
+
+        return new CustomResponse<InviteChatRoomResponseDto>(
+            ResponseStatus.CHAT_ROOM_S004, result
         );
     }
 
