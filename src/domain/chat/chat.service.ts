@@ -20,6 +20,18 @@ export default class ChatService {
     constructor(@Inject(PrismaConfig) private readonly prisma: PrismaClient,) {
     }
 
+    async validateRoomId(roomId: bigint) {
+        const existsChatRoom = await this.prisma.chatRoom.findUnique({
+            where: {
+                id: roomId,
+            },
+        });
+
+        if (!existsChatRoom) {
+            throw new ChatRoomNotExistsException(ResponseStatus.CHAT_F004);
+        }
+    }
+
     async saveChat(sendChatMessage: SendChatMessage, memberId: string) {
         const existsMember = await this.prisma.member.findUnique({
             where: {
@@ -33,7 +45,7 @@ export default class ChatService {
 
         const existsChatRoom = await this.prisma.chatRoom.findUnique({
             where: {
-                id: BigInt(sendChatMessage.roomId),
+                id: sendChatMessage.roomId,
             },
             include: {
                 MemberRoom: true,
@@ -58,5 +70,6 @@ export default class ChatService {
             },
         });
 
+        return chat.id;
     }
 }

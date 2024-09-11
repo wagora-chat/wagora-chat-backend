@@ -13,6 +13,11 @@ import {
 import {
     ConfigService,
 } from "@nestjs/config";
+import UnauthorizedException from "../../../exception/websocket/unauthorized.exception";
+import BadRequestException from "../../../exception/websocket/bad-request.exception";
+import {
+    ResponseStatus,
+} from "../../../response/response-status";
 
 @Injectable()
 export class WebSocketJwtGuard implements CanActivate {
@@ -28,12 +33,17 @@ export class WebSocketJwtGuard implements CanActivate {
         const authToken = client.handshake.headers["authorization"];
 
         if (!authToken) {
-            throw new WsException("Missing authorization token");
+            throw new UnauthorizedException("Missing authorization token");
         }
 
         try {
             // Bearer 토큰에서 실제 JWT 토큰 부분만 추출
-            const token = authToken.split(" ")[1];
+            const tokens = authToken.split(" ");
+            if (tokens.length <= 1 || tokens[0].toLowerCase() !== "bearer") {
+                throw new BadRequestException("Invalid Token Format", ResponseStatus.AUTH_F006);
+            }
+
+            const token = tokens[1];
             const decoded = this.jwtService.verify(token, {
                 secret: this.jwtSecret,
             }

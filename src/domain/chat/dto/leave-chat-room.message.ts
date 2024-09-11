@@ -1,3 +1,8 @@
+import {
+    IsNumber,
+} from "class-validator";
+
 export default class LeaveChatRoomMessage {
-    roomId: string;
+    @IsNumber()
+    roomId: bigint;
 }

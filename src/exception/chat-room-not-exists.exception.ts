@@ -1,6 +1,4 @@
-import {
-    NotFoundException,
-} from "./http/not-found.exception";
+import NotFoundException from "./websocket/not-found.exception";
 import {
     ResponseStatusType,
 } from "../response/response-status";

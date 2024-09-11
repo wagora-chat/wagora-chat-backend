@@ -14,6 +14,7 @@ export const ResponseStatus = {
     AUTH_F006: createResponseStatus("AUTH_F006", "Invalid JWT"),
     AUTH_F007: createResponseStatus("AUTH_F007", "Member Not Exists"),
     AUTH_F008: createResponseStatus("AUTH_F008", "Invalid Email in to send temp password"),
+    AUTH_F009: createResponseStatus("AUTH_F009", "Not Found File"),
     AUTH_S001: createResponseStatus("AUTH_S001", "POST /auth/signup"),
     AUTH_S002: createResponseStatus("AUTH_S002", "POST /auth/emails"),
     AUTH_S003: createResponseStatus("AUTH_S003", "POST /auth/emails/confirm"),
@@ -36,6 +37,7 @@ export const ResponseStatus = {
     CHAT_F001: createResponseStatus("CHAT_F001", "Member Not Exists"),
     CHAT_F002: createResponseStatus("CHAT_F002", "Chat Room Not Exists"),
     CHAT_F003: createResponseStatus("CHAT_F003", "Invalid Request to Send Chat"),
+    CHAT_F004: createResponseStatus("CHAT_F003", "Chat Room Not Exists"),
 } as const;
 export type ResponseStatusType = {
     code: string,

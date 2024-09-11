@@ -1,9 +1,7 @@
 import {
-    BadRequestException,
-} from "./http/bad-request.exception";
-import {
     ResponseStatusType,
 } from "../response/response-status";
+import BadRequestException from "./websocket/bad-request.exception";
 
 export default class InvalidSendChatRequestException extends BadRequestException {
     constructor(errorCode: ResponseStatusType) {

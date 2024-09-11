@@ -1,4 +1,11 @@
+import {
+    IsNotEmpty, IsNumber,
+} from "class-validator";
+
 export default class SendChatMessage {
-    roomId: string;
+    @IsNumber()
+    roomId: bigint;
+
+    @IsNotEmpty()
     message: string;
 }
