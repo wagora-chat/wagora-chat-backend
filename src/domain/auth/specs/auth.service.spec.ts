@@ -20,11 +20,15 @@ import {
 import {
     ConfigService,
 } from "@nestjs/config";
+import FileEntityGenerator from "./generators/file-entity.generator";
 
 const prismaMock = {
     member: {
         findUnique: jest.fn(),
         create: jest.fn(),
+    },
+    file: {
+        findUnique: jest.fn(),
     },
 };
 const clientMock = {
@@ -71,6 +75,7 @@ describe("AuthService", () => {
     const paramsDto =  CheckDuplicateNicknameParamsDtoGenerator.request();
     const signupRequestDto = SignupDtoGenerator.request();
     const member = MemberEntityGenerator.member();
+    const file = FileEntityGenerator.file();
 
     describe("Signup", () => {
         it("AuthService의 인스턴스가 정상적으로 정의되어야 한다.", async () => {
@@ -80,6 +85,7 @@ describe("AuthService", () => {
         it("새로운 회원의 아이디가 생성되어야 한다.", async () => {
             prismaMock.member.findUnique.mockResolvedValue(null);
             prismaMock.member.create.mockResolvedValue(member);
+            prismaMock.file.findUnique.mockResolvedValue(file);
             clientMock.get.mockResolvedValue("validate");
 
             const result = await authService.signup(signupRequestDto);
