@@ -114,9 +114,6 @@ describe("ChatRoom Test (e2e)", () => {
 
     beforeEach(async () => {
         await redisClient.reset();
-        await prismaConfig.file.create({
-            data: fileFixture(),
-        });
         await prismaConfig.memberRoom.deleteMany({});
         await prismaConfig.chatRoom.deleteMany({});
         await prismaConfig.member.deleteMany({});
@@ -125,6 +122,9 @@ describe("ChatRoom Test (e2e)", () => {
     it("app은 정의되어야 한다. ", () => {
         expect(app).toBeDefined();
     });
+
+    // TODO: 인가된 Token 요청은 하나로 통일
+    // TODO: 비인가된 Token에 대한 처리 또한 하나로 통일
 
     describe("createCharRoom ", () => {
         describe("인가된 Token의 사용자가 요청하면,", () => {
