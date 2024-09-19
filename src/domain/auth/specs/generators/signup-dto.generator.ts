@@ -11,7 +11,7 @@ export default class SignupDtoGenerator {
             password: faker.internet.password(),
             checkPassword: faker.internet.password(),
             nickname: faker.person.fullName(),
-            profile: faker.number.bigInt(),
+            profile: faker.internet.url(),
         };
     }
 
