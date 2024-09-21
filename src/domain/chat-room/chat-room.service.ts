@@ -34,6 +34,16 @@ import {
 import {
     LeaveChatRoomFailException,
 } from "../../exception/leave-chat-room-fail.exception";
+import {
+    InviteChatRoomResponseDto,
+} from "./dto/response/invite-chat-room.response.dto";
+import MemberNotExistException from "../../exception/member-not-exist.exception";
+import {
+    MemberAlreadyJoinedException,
+} from "../../exception/member-already-joined.exception";
+import {
+    NoPermissionInviteException,
+} from "../../exception/no-permission-invite.exception";
 
 type ChatRoom = {
     id: bigint | string,
@@ -186,4 +196,59 @@ export class ChatRoomService {
         }
     }
 
+    async inviteChatRoom(
+        chatRoomId: bigint,
+        ids: string[],
+        inviterId: bigint,
+    ): Promise<InviteChatRoomResponseDto> {
+        // 1. 채팅방 존재 여부 확인
+        const chatRoom = await this.prisma.chatRoom.findUnique({
+            where: {
+                id: chatRoomId,
+            },
+            include: {
+                MemberRoom: true,
+            },
+        });
+
+        if (!chatRoom) {
+            throw new ChatRoomNotFoundException(ResponseStatus.CHAT_ROOM_F003);
+        }
+
+        // 2. 초대자가 채팅방의 멤버인지 확인
+        const isInviterMember = chatRoom.MemberRoom.some(mr => mr.memberId === inviterId);
+        if (!isInviterMember) {
+            throw new NoPermissionInviteException(ResponseStatus.CHAT_ROOM_F007);
+        }
+
+        // 3. 초대할 멤버 조회
+        const members = await this.prisma.member.findMany({
+            where: {
+                id: {
+                    in: ids.map(id => BigInt(id)),
+                },
+            },
+        });
+
+        if(members.length !== ids.length) {
+            throw new MemberNotExistException();
+        }
+
+        // 4. 이미 참여 중인 멤버를 필터링
+        const existingMembers = chatRoom.MemberRoom.map(mr => mr.memberId);
+        const addMemberIds = members.filter(member => !existingMembers.includes(member.id));
+
+        if(addMemberIds.length !== members.length) {
+            throw new MemberAlreadyJoinedException(ResponseStatus.CHAT_ROOM_F006);
+        }
+
+        await this.prisma.memberRoom.createMany({
+            data: addMemberIds.map(member => ({
+                roomId: chatRoomId,
+                memberId: member.id,
+            })),
+        });
+
+        return new InviteChatRoomResponseDto(`${addMemberIds.length}명의 회원이 채팅방에 초대되었습니다.`);
+    }
 }

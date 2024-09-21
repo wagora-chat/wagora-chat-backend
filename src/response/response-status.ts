@@ -27,9 +27,12 @@ export const ResponseStatus = {
     CHAT_ROOM_F003: createResponseStatus("CHAT_ROOM_F003", "Not found chatroom"),
     CHAT_ROOM_F004: createResponseStatus("CHAT_ROOM_F004", "Not found member in chatroom"),
     CHAT_ROOM_F005: createResponseStatus("CHAT_ROOM_F005", "Manager doesn't leave chatroom until only one left"),
+    CHAT_ROOM_F006: createResponseStatus("CHAT_ROOM_F006", "Member already in chat room"),
+    CHAT_ROOM_F007: createResponseStatus("CHAT_ROOM_F007", "No permission to invite members to the chat room"),
     CHAT_ROOM_S001: createResponseStatus("CHAT_ROOM_S001", "POST /chat-rooms"),
     CHAT_ROOM_S002: createResponseStatus("CHAT_ROOM_S002", "GET /chat-rooms"),
     CHAT_ROOM_S003: createResponseStatus("CHAT_ROOM_S003", "DELETE /chat-rooms"),
+    CHAT_ROOM_S004: createResponseStatus("CHAT_ROOM_S004", "POST /chat-rooms/:id"),
 } as const;
 export type ResponseStatusType = {
     code: string,
