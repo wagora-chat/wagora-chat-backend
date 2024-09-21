@@ -236,19 +236,19 @@ export class ChatRoomService {
 
         // 4. 이미 참여 중인 멤버를 필터링
         const existingMembers = chatRoom.MemberRoom.map(mr => mr.memberId);
-        const newMembers = members.filter(member => !existingMembers.includes(member.id));
+        const addMemberIds = members.filter(member => !existingMembers.includes(member.id));
 
-        if(newMembers.length === 0) {
+        if(addMemberIds.length !== members.length) {
             throw new MemberAlreadyJoinedException(ResponseStatus.CHAT_ROOM_F006);
         }
 
         await this.prisma.memberRoom.createMany({
-            data: newMembers.map(member => ({
+            data: addMemberIds.map(member => ({
                 roomId: chatRoomId,
                 memberId: member.id,
             })),
         });
 
-        return new InviteChatRoomResponseDto(`${newMembers.length}명의 회원이 채팅방에 초대되었습니다.`);
+        return new InviteChatRoomResponseDto(`${addMemberIds.length}명의 회원이 채팅방에 초대되었습니다.`);
     }
 }

@@ -32,7 +32,7 @@ export const ResponseStatus = {
     CHAT_ROOM_S001: createResponseStatus("CHAT_ROOM_S001", "POST /chat-rooms"),
     CHAT_ROOM_S002: createResponseStatus("CHAT_ROOM_S002", "GET /chat-rooms"),
     CHAT_ROOM_S003: createResponseStatus("CHAT_ROOM_S003", "DELETE /chat-rooms"),
-    CHAT_ROOM_S004: createResponseStatus("CHAT_ROOM_S004", "POST /chat-rooms"),
+    CHAT_ROOM_S004: createResponseStatus("CHAT_ROOM_S004", "POST /chat-rooms/:id"),
 } as const;
 export type ResponseStatusType = {
     code: string,
