@@ -45,13 +45,6 @@ import {
     NoPermissionInviteException,
 } from "../../exception/no-permission-invite.exception";
 
-type ChatRoom = {
-    id: bigint | string,
-    name: string,
-    color: string,
-    memberCount: bigint
-}
-
 @Injectable()
 export class ChatRoomService {
     constructor(
@@ -231,7 +224,7 @@ export class ChatRoomService {
         });
 
         if(members.length !== ids.length) {
-            throw new MemberNotExistException();
+            throw new MemberNotExistException(ResponseStatus.CHAT_ROOM_F006);
         }
 
         // 4. 이미 참여 중인 멤버를 필터링

@@ -64,6 +64,9 @@ import GetChatRoomListResponseDto from "../../../src/domain/chat-room/dto/respon
 import {
     LeaveChatRoomResponseDto,
 } from "../../../src/domain/chat-room/dto/response/leave-chat-room.response.dto";
+import {
+    fileFixture,
+} from "../../fixture/entity/file.fixture";
 
 describe("ChatRoom Test (e2e)", () => {
     let app: INestApplication<any>;
@@ -119,6 +122,9 @@ describe("ChatRoom Test (e2e)", () => {
     it("app은 정의되어야 한다. ", () => {
         expect(app).toBeDefined();
     });
+
+    // TODO: 인가된 Token 요청은 하나로 통일
+    // TODO: 비인가된 Token에 대한 처리 또한 하나로 통일
 
     describe("createCharRoom ", () => {
         describe("인가된 Token의 사용자가 요청하면,", () => {

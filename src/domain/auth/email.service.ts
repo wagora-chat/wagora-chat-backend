@@ -149,7 +149,7 @@ export class EmailService {
             },
         });
         if (!member) {
-            throw new MemberNotExistException();
+            throw new MemberNotExistException(ResponseStatus.AUTH_F007);
         }
 
         const tempPassword = generateRandomPasswordFunction();

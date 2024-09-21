@@ -37,6 +37,9 @@ import LoginFailedException from "../../exception/login-failed-exception";
 import {
     ResponseStatus,
 } from "../../response/response-status";
+import {
+    FileNotFoundException,
+} from "../../exception/file-not-found.exception";
 
 export type ExistsMember = Member | null;
 
@@ -136,4 +139,23 @@ export default class AuthService {
             member.nickname, accessToken, "Bearer"
         );
     }
+
+    private async validateProfile(profile?: bigint) {
+        if (profile) {
+            const file = await this.prisma.file.findUnique({
+                where: {
+                    id: profile,
+                },
+            });
+
+            if (!file) {
+                throw new FileNotFoundException(ResponseStatus.AUTH_F009);
+            }
+
+            return profile;
+        } else {
+            return 1;
+        }
+    }
+
 }
