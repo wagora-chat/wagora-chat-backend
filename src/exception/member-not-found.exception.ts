@@ -5,8 +5,8 @@ import {
     ResponseStatusType,
 } from "../response/response-status";
 
-export default class MemberNotExistException extends NotFoundException {
+export class MemberNotFoundException extends NotFoundException {
     constructor(errorCode: ResponseStatusType) {
-        super("Member Not Exists", errorCode);
+        super("Not Found Member", errorCode);
     }
 }

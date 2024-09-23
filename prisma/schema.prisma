@@ -33,6 +33,7 @@ model Member {
   files           File[]       @relation("Member")
   fileId          BigInt?      @unique @map("file_id")
   profileFile     File?        @relation("ProfileFile", fields: [fileId], references: [id])
+  chats           Chat[]
 
   @@map("member")
 }
@@ -45,6 +46,7 @@ model ChatRoom {
   managerId     BigInt       @map("manager_id")
   MemberRoom    MemberRoom[]
   RoomFile      RoomFile[]
+  chats         Chat[]
 
   @@map("chat_room")
 }
@@ -67,4 +69,16 @@ model RoomFile {
 
   @@id([fileId, roomId])
   @@map("room_file")
+}
+
+model Chat {
+  id        BigInt   @id @default(autoincrement())
+  message   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  memberId  BigInt   @map("member_id")
+  member    Member   @relation(fields: [memberId], references: [id])
+  roomId    BigInt   @map("room_id")
+  room      ChatRoom @relation(fields: [roomId], references: [id])
+
+  @@map("chat")
 }

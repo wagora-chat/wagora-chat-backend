@@ -24,6 +24,7 @@ import {
 import {
     ChatRoomModule,
 } from "./domain/chat-room/chat-room.module";
+import ChatModule from "./domain/chat/chat.module";
 
 @Module({
     imports: [
@@ -36,6 +37,7 @@ import {
         AuthModule,
         PrismaModule,
         ChatRoomModule,
+        ChatModule,
         RedisModule.forRootAsync(
             {
                 imports: [ConfigModule,],

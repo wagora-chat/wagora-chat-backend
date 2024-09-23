@@ -18,7 +18,6 @@ import {
 } from "../response/response-status";
 
 @Catch(HttpException)
-
 export class HttpExceptionFilter implements ExceptionFilter {
     private readonly logger = new Logger(HttpExceptionFilter.name);
 
