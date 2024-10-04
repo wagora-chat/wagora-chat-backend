@@ -2,7 +2,7 @@ import {
     ApiProperty,
 } from "@nestjs/swagger";
 import {
-    IsArray, IsOptional, IsString,
+    IsOptional, IsString,
 } from "class-validator";
 import {
     Transform,
