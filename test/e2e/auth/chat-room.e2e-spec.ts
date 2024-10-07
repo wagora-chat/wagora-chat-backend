@@ -1,6 +1,5 @@
 import {
-    HttpStatus,
-    INestApplication,
+    HttpStatus, INestApplication,
 } from "@nestjs/common";
 import {
     PrismaConfig,
@@ -38,7 +37,7 @@ import {
     generateRandomPasswordFunction,
 } from "../../../src/util/func/random-password.function";
 import {
-    memberFixture, memberRandomFixture,
+    memberFixture, memberRandomListFixture,
 } from "../../fixture/entity/member.fixture";
 import {
     JwtService,
@@ -138,17 +137,12 @@ describe("ChatRoom Test (e2e)", () => {
         });
 
         // Generate Invite Members
-        members = [];
-        const randomNumber = Math.ceil(Math.random() * 20);
-        for (let i = 0; i < randomNumber; i++) {
-            const randomMember = memberRandomFixture(
-                await bcrypt.hash(generateRandomPasswordFunction(), await bcrypt.genSalt()), i
-            );
-            const storedRandomMember = await prismaConfig.member.create({
-                data: randomMember,
-            });
-            members.push(storedRandomMember);
-        }
+        const memberRandomList = memberRandomListFixture(
+            await bcrypt.hash(generateRandomPasswordFunction(), await bcrypt.genSalt()), Math.ceil(Math.random() * 20)
+        );
+        members = await prismaConfig.member.createManyAndReturn({
+            data: memberRandomList,
+        });
     });
 
     it("app은 정의되어야 한다. ", () => {
