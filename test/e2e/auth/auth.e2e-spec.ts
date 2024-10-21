@@ -21,9 +21,6 @@ import {
     AppModule,
 } from "../../../src/app.module";
 import {
-    VerifyCodeEmailRequestDto,
-} from "../../../src/domain/auth/dto/req/verify-code-email.request.dto";
-import {
     VerifyCodeEmailResponseDto,
 } from "../../../src/domain/auth/dto/res/verify-code-email.response.dto";
 import CustomResponse from "../../../src/response/custom-response";
@@ -48,6 +45,11 @@ import {
 import {
     psqlTestContainerStarter,
 } from "../../../src/util/func/postgresql-container.function";
+import {
+    invalidCodeVerifyCodeEmailRequestDTOFixture,
+    invalidVerifyCodeEmailRequestDTOFixture,
+    validVerifyCodeEmailRequestDTOFixture,
+} from "../../fixture/request/verify-code-email-request-dto.fixture";
 
 describe("Auth Test (e2e)", () => {
     let app: INestApplication<any>;
@@ -101,42 +103,33 @@ describe("Auth Test (e2e)", () => {
     describe("confirmValidateCode Test", () => {
         it("해당 Email에 저장된 Code를 받으면 요청한 email을 반환한다.", async () => {
             // given
-            const expectedUserEmail = "test1234@gmail.com";
-            const expectedCode = "123456";
-            await redisClient.set(`validateEmail-${expectedUserEmail}`, expectedCode);
-            const requestBody: VerifyCodeEmailRequestDto = {
-                email: expectedUserEmail,
-                code: expectedCode,
-            };
+            await redisClient.set(
+                `validateEmail-${validVerifyCodeEmailRequestDTOFixture.email}`, validVerifyCodeEmailRequestDTOFixture.code
+            );
 
             // when
             const response = await request(app.getHttpServer())
                 .post("/auth/emails/confirm")
-                .send(requestBody)
+                .send(validVerifyCodeEmailRequestDTOFixture)
                 .expect(HttpStatus.CREATED);
 
             // then
             const actual = response.body as CustomResponse<VerifyCodeEmailResponseDto>;
             expect(actual.customStatus).toStrictEqual(ResponseStatus.AUTH_S003);
-            expect(actual.data.email).toBe(expectedUserEmail);
+            expect(actual.data.email).toBe(validVerifyCodeEmailRequestDTOFixture.email);
         });
 
         it("해당 Email에 저장된 Code가 아닌 경우 email 인증이 실패했다는 예외를 발생시킨다..", async () => {
             // given
-            const expectedUserEmail = "test1234@gmail.com";
-            const expectedCode = "123456";
             const expectedPath = "/auth/emails/confirm";
-            await redisClient.set(`validateEmail-${expectedUserEmail}`, expectedCode);
-            const invalidCode = "654321";
-            const requestBody: VerifyCodeEmailRequestDto = {
-                email: expectedUserEmail,
-                code: invalidCode,
-            };
+            await redisClient.set(
+                `validateEmail-${validVerifyCodeEmailRequestDTOFixture.email}`, validVerifyCodeEmailRequestDTOFixture.code
+            );
 
             // when
             const response = await request(app.getHttpServer())
                 .post("/auth/emails/confirm")
-                .send(requestBody)
+                .send(invalidCodeVerifyCodeEmailRequestDTOFixture)
                 .expect(HttpStatus.FORBIDDEN);
 
             // then
@@ -147,17 +140,11 @@ describe("Auth Test (e2e)", () => {
 
         it("해당 Email이 저장되어 있지 않은 경우 email 인증이 실패했다는 예외를 발생시킨다..", async () => {
             // given
-            const expectedUserEmail = "test1234@gmail.com";
             const expectedPath = "/auth/emails/confirm";
-            const invalidCode = "654321";
-            const requestBody: VerifyCodeEmailRequestDto = {
-                email: expectedUserEmail,
-                code: invalidCode,
-            };
             // when
             const response = await request(app.getHttpServer())
                 .post("/auth/emails/confirm")
-                .send(requestBody)
+                .send(invalidVerifyCodeEmailRequestDTOFixture)
                 .expect(HttpStatus.FORBIDDEN);
 
             // then

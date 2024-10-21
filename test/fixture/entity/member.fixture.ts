@@ -17,3 +17,18 @@ export const memberRandomFixture
             profile: "fixtureProfile",
         };
     };
+
+export const memberRandomListFixture
+    = (bcryptPassword: string, sequenceCount = 1) => {
+        const members = [];
+
+        for (let i = 0; i < sequenceCount; i++) {
+            const randomMember = memberRandomFixture(
+                bcryptPassword, i
+            );
+
+            members.push(randomMember);
+        }
+
+        return members;
+    };

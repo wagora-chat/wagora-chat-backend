@@ -1,6 +1,5 @@
 import {
-    HttpStatus,
-    INestApplication,
+    HttpStatus, INestApplication,
 } from "@nestjs/common";
 import {
     PrismaConfig,
@@ -38,7 +37,7 @@ import {
     generateRandomPasswordFunction,
 } from "../../../src/util/func/random-password.function";
 import {
-    memberFixture, memberRandomFixture,
+    memberFixture, memberRandomListFixture,
 } from "../../fixture/entity/member.fixture";
 import {
     JwtService,
@@ -65,8 +64,8 @@ import {
     LeaveChatRoomResponseDto,
 } from "../../../src/domain/chat-room/dto/response/leave-chat-room.response.dto";
 import {
-    fileFixture,
-} from "../../fixture/entity/file.fixture";
+    Member,
+} from "@prisma/client";
 
 describe("ChatRoom Test (e2e)", () => {
     let app: INestApplication<any>;
@@ -76,6 +75,9 @@ describe("ChatRoom Test (e2e)", () => {
     let jwtService: JwtService;
     let configService: ConfigService;
     let redisClient: Redis;
+    let storeMember: Member;
+    let token: string;
+    let members: Array<Member | null>;
 
     beforeAll(async () => {
         const psqlConfig = await psqlTestContainerStarter();
@@ -100,6 +102,7 @@ describe("ChatRoom Test (e2e)", () => {
 
         configService = module.get<ConfigService>(ConfigService);
         jwtService = module.get<JwtService>(JwtService);
+
         redisClient = module.get<Redis>(getRedisToken("default"));
         app = module.createNestApplication();
         app.useGlobalFilters(new HttpExceptionFilter());
@@ -117,129 +120,39 @@ describe("ChatRoom Test (e2e)", () => {
         await prismaConfig.memberRoom.deleteMany({});
         await prismaConfig.chatRoom.deleteMany({});
         await prismaConfig.member.deleteMany({});
+
+        // Generate Request Member
+        const currentPassword = generateRandomPasswordFunction();
+        const encryptedPassword = await bcrypt.hash(currentPassword, await bcrypt.genSalt());
+        const member = memberFixture(encryptedPassword);
+        storeMember = await prismaConfig.member.create({
+            data: member,
+        });
+
+        // Generate AccessToken
+        token = jwtService.sign({
+            sub: storeMember.id.toString(),
+        }, {
+            secret: configService.get<string>("JWT_SECRET_KEY") ?? "secret",
+        });
+
+        // Generate Invite Members
+        const memberRandomList = memberRandomListFixture(
+            await bcrypt.hash(generateRandomPasswordFunction(), await bcrypt.genSalt()), Math.ceil(Math.random() * 20)
+        );
+        members = await prismaConfig.member.createManyAndReturn({
+            data: memberRandomList,
+        });
     });
 
     it("app은 정의되어야 한다. ", () => {
         expect(app).toBeDefined();
     });
 
-    // TODO: 인가된 Token 요청은 하나로 통일
-    // TODO: 비인가된 Token에 대한 처리 또한 하나로 통일
-
-    describe("createCharRoom ", () => {
-        describe("인가된 Token의 사용자가 요청하면,", () => {
-            describe("DTO의 값을 채우고 존재하는 member의 Ids값을 매개 값으로 제공하면, ", () => {
-                it("Token의 Member가 관리자이고, Ids에 들어간 Member들로 구성되는 Chat Room 생성한다.", async () => {
-                    // given
-                    const currentPassword = generateRandomPasswordFunction();
-                    const encryptedPassword = await bcrypt.hash(currentPassword, await bcrypt.genSalt());
-                    const member = memberFixture(encryptedPassword);
-                    const storeMember = await prismaConfig.member.create({
-                        data: member,
-                    });
-
-                    const randomNumber = Math.ceil(Math.random() * 20);
-                    const members = [];
-                    for (let i = 0; i < randomNumber; i++) {
-                        const randomMember = memberRandomFixture(
-                            await bcrypt.hash(generateRandomPasswordFunction(), await bcrypt.genSalt()), i
-                        );
-                        const storedRandomMember = await prismaConfig.member.create({
-                            data: randomMember,
-                        });
-                        members.push(storedRandomMember);
-                    }
-
-                    const token = jwtService.sign({
-                        sub: storeMember.id.toString(),
-                    }, {
-                        secret: configService.get<string>("JWT_SECRET_KEY") ?? "secret",
-                    });
-                    const ids = members.map(member =>
-                        member.id.toString()
-                    );
-                    const requestBodyDto: CreateChatRoomRequestDto = {
-                        name: "Algorithm",
-                        color: "Red",
-                        ids: ids,
-                    };
-
-                    // when
-                    const response = await request(app.getHttpServer())
-                        .post("/chat-rooms")
-                        .send(requestBodyDto)
-                        .set("Authorization", `Bearer ${token}`)
-                        .expect(HttpStatus.CREATED);
-
-                    // then
-                    const actual = response.body as CustomResponse<CreateChatRoomResponseDto>;
-                    const actualChatRoom = await prismaConfig.chatRoom.findUnique({
-                        where: {
-                            id: BigInt(actual.data.id),
-                        },
-                        include: {
-                            MemberRoom: {
-                                include: {
-                                    member: true,
-                                },
-                            },
-                        },
-                    });
-                    expect(actual.customStatus).toStrictEqual(ResponseStatus.CHAT_ROOM_S001);
-                    expect(actual.data.id).toBe(actualChatRoom?.id.toString());
-
-                });
-            });
-            describe("DTO에서 존재하지 않는 member의 Ids값을 매개 값으로 제공하면, ", () => {
-                it("잘못된 요청이라는 예외를 발생시킨다.", async () => {
-                    // given
-                    // Member 생성
-                    const currentPassword = generateRandomPasswordFunction();
-                    const encryptedPassword = await bcrypt.hash(currentPassword, await bcrypt.genSalt());
-                    const member = memberFixture(encryptedPassword);
-                    const storeMember = await prismaConfig.member.create({
-                        data: member,
-                    });
-
-                    const randomNumber = Math.ceil(Math.random() * 20);
-                    const memberIds = [];
-                    for (let i = 0; i < randomNumber; i++) {
-                        if (storeMember.id === BigInt(i)) continue;
-                        memberIds.push(BigInt(i));
-                    }
-
-                    const token = jwtService.sign({
-                        sub: storeMember.id.toString(),
-                    }, {
-                        secret: configService.get<string>("JWT_SECRET_KEY") ?? "secret",
-                    });
-                    const ids = memberIds.map(id =>
-                        id.toString()
-                    );
-                    const requestBodyDto: CreateChatRoomRequestDto = {
-                        name: "Algorithm",
-                        color: "Red",
-                        ids: ids,
-                    };
-
-                    // when
-                    const response = await request(app.getHttpServer())
-                        .post("/chat-rooms")
-                        .send(requestBodyDto)
-                        .set("Authorization", `Bearer ${token}`)
-                        .expect(HttpStatus.BAD_REQUEST);
-
-                    // then
-                    const actual = response.body as CustomResponse<ErrorDataDto>;
-                    expect(actual.customStatus).toStrictEqual(ResponseStatus.CHAT_ROOM_F001);
-                });
-            });
-        });
-
-        describe("토큰이 없으면,", () => {
+    describe("Invalid Authenticate", () => {
+        describe("인가되지 않은 사용자의 요청이면", () => {
             it("비인가 접근의 예외를 발생시킨다.", async () => {
                 // given
-                // Member 생성
                 const requestBodyDto: CreateChatRoomRequestDto = {
                     name: "Algorithm",
                     color: "Red",
@@ -287,109 +200,265 @@ describe("ChatRoom Test (e2e)", () => {
             });
         });
     });
-    describe("getChatRoomList", () => {
-        describe("인가된 Token의 사용자가 요청하면,", () => {
-            describe("Query Param을 전달하지 않으면, ", () => {
-                it("회원이 속해있는 전체 채팅방 목록이 반환된다.", async () => {
-                    // given
-                    const currentPassword = generateRandomPasswordFunction();
-                    const encryptedPassword = await bcrypt.hash(currentPassword, await bcrypt.genSalt());
-                    const member = memberFixture(encryptedPassword);
-                    const storeMember = await prismaConfig.member.create({
-                        data: member,
-                    });
 
-                    const randomNumber = Math.ceil(Math.random() * 20);
-                    const members = [];
-                    for (let i = 0; i < randomNumber; i++) {
-                        const randomMember = memberRandomFixture(
-                            await bcrypt.hash(generateRandomPasswordFunction(), await bcrypt.genSalt()), i
-                        );
-                        const storedRandomMember = await prismaConfig.member.create({
-                            data: randomMember,
-                        });
-                        members.push(storedRandomMember);
-                    }
+    describe("createChatRoom ", () => {
+        describe("DTO의 값을 채우고 존재하는 member의 Ids값을 매개 값으로 제공하면, ", () => {
+            it("Token의 Member가 관리자이고, Ids에 들어간 Member들로 구성되는 Chat Room 생성한다.", async () => {
+                // given
+                const ids = members.map(member =>
+                    member!.id.toString()
+                );
+                const requestBodyDto: CreateChatRoomRequestDto = {
+                    name: "Algorithm",
+                    color: "Red",
+                    ids: ids,
+                };
 
-                    const chatRoomName = "Algorithm";
-                    let containsRoomCount = 0;
-                    for (let i = 0; i < randomNumber; i++) {
-                        const managerId: bigint = i % 2 === 0 ? storeMember.id : members[i].id;
-                        const chatRoom =
-                            chatRoomFixture(
-                                chatRoomName, managerId, members.filter(member => member.id !== managerId)
-                                    .map(member => member.id)
-                            );
+                // when
+                const response = await request(app.getHttpServer())
+                    .post("/chat-rooms")
+                    .send(requestBodyDto)
+                    .set("Authorization", `Bearer ${token}`)
+                    .expect(HttpStatus.CREATED);
 
-                        await prismaConfig.chatRoom.create({
-                            data: chatRoom,
-                        });
-
-                        if (managerId === storeMember.id) containsRoomCount++;
-                    }
-
-                    const token = jwtService.sign({
-                        sub: storeMember.id.toString(),
-                    }, {
-                        secret: configService.get<string>("JWT_SECRET_KEY") ?? "secret",
-                    });
-
-                    // when
-                    const response = await request(app.getHttpServer())
-                        .get("/chat-rooms")
-                        .set("Authorization", `Bearer ${token}`)
-                        .expect(HttpStatus.OK);
-
-                    // then
-                    const actual = response.body as CustomResponse<GetChatRoomListResponseDto[]>;
-                    expect(actual.customStatus).toStrictEqual(ResponseStatus.CHAT_ROOM_S002);
-                    expect(actual.data.length).toBe(containsRoomCount);
+                // then
+                const actual = response.body as CustomResponse<CreateChatRoomResponseDto>;
+                const actualChatRoom = await prismaConfig.chatRoom.findUnique({
+                    where: {
+                        id: BigInt(actual.data.id),
+                    },
+                    include: {
+                        MemberRoom: {
+                            include: {
+                                member: true,
+                            },
+                        },
+                    },
                 });
+                expect(actual.customStatus).toStrictEqual(ResponseStatus.CHAT_ROOM_S001);
+                expect(actual.data.id).toBe(actualChatRoom?.id.toString());
+
+            });
+        });
+        describe("DTO에서 존재하지 않는 member의 Ids값을 매개 값으로 제공하면, ", () => {
+            it("잘못된 요청이라는 예외를 발생시킨다.", async () => {
+                // given
+                const randomNumber = Math.ceil(Math.random() * 20);
+                const memberIds = [];
+                for (let i = 0; i < randomNumber; i++) {
+                    if (storeMember.id === BigInt(i)) continue;
+                    memberIds.push(BigInt(i));
+                }
+
+                const ids = memberIds.map(id =>
+                    id.toString()
+                );
+                const requestBodyDto: CreateChatRoomRequestDto = {
+                    name: "Algorithm",
+                    color: "Red",
+                    ids: ids,
+                };
+
+                // when
+                const response = await request(app.getHttpServer())
+                    .post("/chat-rooms")
+                    .send(requestBodyDto)
+                    .set("Authorization", `Bearer ${token}`)
+                    .expect(HttpStatus.BAD_REQUEST);
+
+                // then
+                const actual = response.body as CustomResponse<ErrorDataDto>;
+                expect(actual.customStatus).toStrictEqual(ResponseStatus.CHAT_ROOM_F001);
+            });
+        });
+    });
+
+    describe("getChatRoomList", () => {
+        describe("Query Param을 전달하지 않으면, ", () => {
+            it("회원이 속해있는 전체 채팅방 목록이 반환된다.", async () => {
+                // given
+                const chatRoomName = "Algorithm";
+                let containsRoomCount = 0;
+                for (let i = 0; i < members.length; i++) {
+                    const managerId: bigint = i % 2 === 0 ? storeMember.id : members[i]!.id;
+                    const chatRoom =
+                        chatRoomFixture(
+                            chatRoomName, managerId, members.filter(member => member!.id !== managerId)
+                                .map(member => member!.id)
+                        );
+
+                    await prismaConfig.chatRoom.create({
+                        data: chatRoom,
+                    });
+
+                    if (managerId === storeMember.id) containsRoomCount++;
+                }
+
+                // when
+                const response = await request(app.getHttpServer())
+                    .get("/chat-rooms")
+                    .set("Authorization", `Bearer ${token}`)
+                    .expect(HttpStatus.OK);
+
+                // then
+                const actual = response.body as CustomResponse<GetChatRoomListResponseDto[]>;
+                expect(actual.customStatus).toStrictEqual(ResponseStatus.CHAT_ROOM_S002);
+                expect(actual.data.length).toBe(containsRoomCount);
+            });
+        });
+
+        describe("Query Param에 name 파라미터를 전달하면", () => {
+            it("자신인 속한 채팅방 중, name 이 제목에 들어간 채팅방 목록이 반환된다.", async () => {
+                // given
+                const randomNumber = Math.ceil(Math.random() * 10);
+                const chatRoomName = "Algorithm";
+                for (let i = 0; i < randomNumber; i++) {
+                    const chatRoom = chatRoomFixture(
+                        chatRoomName, storeMember.id, members.map(member => member!.id)
+                    );
+
+                    await prismaConfig.chatRoom.create({
+                        data: chatRoom,
+                    });
+                }
+
+                const anotherChatRoomName = "Database";
+                const anotherChatRoom = chatRoomFixture(
+                    anotherChatRoomName, storeMember.id, []
+                );
+                await prismaConfig.chatRoom.create({
+                    data: anotherChatRoom,
+                });
+
+                // when
+                const response = await request(app.getHttpServer())
+                    .get("/chat-rooms")
+                    .query({
+                        name: chatRoomName,
+                    })
+                    .set("Authorization", `Bearer ${token}`)
+                    .expect(HttpStatus.OK);
+
+                // then
+                const actual = response.body as CustomResponse<GetChatRoomListResponseDto[]>;
+                expect(actual.customStatus).toStrictEqual(ResponseStatus.CHAT_ROOM_S002);
+                expect(actual.data.length).toBe(randomNumber);
+            });
+        });
+
+        describe("Query Param에 members 파라미터를 전달하면", () => {
+            it("자신이 속한 채팅방 중, members 의 회원들이 같이 포함된 채팅방 목록이 반환된다.", async () => {
+                // given
+                const searchMembers = members.slice(0, members.length / 2).map(member => member!.id);
+                const noSearchMembers = members.slice(members.length / 2).map(member => member!.id);
+
+                const randomNumber = Math.ceil(Math.random() * 10);
+                const chatRoomName = "Algorithm";
+                let containsRoomCount = 0;
+                for (let i = 0; i < randomNumber; i++) {
+                    const inviteMembers = i % 2 === 0 ? searchMembers : noSearchMembers;
+                    const chatRoom = chatRoomFixture(
+                        chatRoomName, storeMember.id, inviteMembers
+                    );
+
+                    await prismaConfig.chatRoom.create({
+                        data: chatRoom,
+                    });
+
+                    if (inviteMembers === searchMembers) containsRoomCount++;
+                }
+
+                // when
+                const response = await request(app.getHttpServer())
+                    .get("/chat-rooms")
+                    .query({
+                        members: searchMembers,
+                    })
+                    .set("Authorization", `Bearer ${token}`)
+                    .expect(HttpStatus.OK);
+
+                // then
+                const actual = response.body as CustomResponse<GetChatRoomListResponseDto[]>;
+                expect(actual.customStatus).toStrictEqual(ResponseStatus.CHAT_ROOM_S002);
+                expect(actual.data.length).toBe(containsRoomCount);
+            });
+        });
+
+        describe("Query Param에 name과 members 모두를 전달하면", () => {
+            it("잘못된 요청이므로 예외를 발생시켜야 한다.", async () => {
+                // given
+
+                // when
+                const response = await request(app.getHttpServer())
+                    .get("/chat-rooms")
+                    .query({
+                        name: "Hello",
+                        members: [2,
+                            3,
+                            4,],
+                    })
+                    .set("Authorization", `Bearer ${token}`)
+                    .expect(HttpStatus.BAD_REQUEST);
+
+                // then
+                const actual = response.body as CustomResponse<ErrorDataDto>;
+                expect(actual.customStatus).toStrictEqual(ResponseStatus.CHAT_ROOM_F002);
             });
         });
     });
     describe("leaveChatRoom", () => {
-        describe("인가된 Token의 사용자가 요청하면,", () => {
-            describe("해당 채팅방에 소속되어 있으면", () => {
-                describe("관리자가 아니면", () => {
-                    it("채팅방에서 나갈 수 있다.", async () => {
+        describe("해당 채팅방에 소속되어 있으면", () => {
+            describe("관리자가 아니면", () => {
+                it("채팅방에서 나갈 수 있다.", async () => {
+                    // given
+                    const chatRoomName = "Algorithm";
+                    const managerId = members[0]!.id;
+                    const memberIds = members.map(member => member!.id);
+                    memberIds.push(storeMember.id);
+
+                    const chatRoom = chatRoomFixture(
+                        chatRoomName, managerId, memberIds.filter(id => id !== managerId)
+                    );
+
+                    const storedChatRoom = await prismaConfig.chatRoom.create({
+                        data: chatRoom,
+                    });
+
+                    // when
+                    const response = await request(app.getHttpServer())
+                        .delete(`/chat-rooms/${storedChatRoom.id.toString()}`)
+                        .set("Authorization", `Bearer ${token}`)
+                        .expect(HttpStatus.OK);
+
+                    // then
+                    const actual = response.body as CustomResponse<LeaveChatRoomResponseDto>;
+                    expect(actual.customStatus.code).toStrictEqual(ResponseStatus.CHAT_ROOM_S003.code);
+                    const actualChatRoom = await prismaConfig.chatRoom.findUnique({
+                        where: {
+                            id: storedChatRoom.id,
+                        },
+                        include: {
+                            MemberRoom: true,
+                        },
+                    });
+                    expect(true).toBe(actualChatRoom?.MemberRoom.some(
+                        memberRoom => memberRoom.memberId !== storeMember.id)
+                    );
+                });
+            });
+            describe("관리자이면, ", () => {
+                describe("혼자 남은 경우,", () => {
+                    it("채팅방을 나가고, 채팅방도 삭제해야 한다. ", async () => {
                         // given
-                        const currentPassword = generateRandomPasswordFunction();
-                        const encryptedPassword = await bcrypt.hash(currentPassword, await bcrypt.genSalt());
-                        const member = memberFixture(encryptedPassword);
-                        const storeMember = await prismaConfig.member.create({
-                            data: member,
-                        });
-
-                        const randomNumber = Math.ceil(Math.random() * 20);
-                        const members = [];
-                        for (let i = 0; i < randomNumber; i++) {
-                            const randomMember = memberRandomFixture(
-                                await bcrypt.hash(generateRandomPasswordFunction(), await bcrypt.genSalt()), i
-                            );
-                            const storedRandomMember = await prismaConfig.member.create({
-                                data: randomMember,
-                            });
-                            members.push(storedRandomMember);
-                        }
-
                         const chatRoomName = "Algorithm";
-                        const managerId = members[0].id;
-                        const memberIds = members.map(member => member.id);
-                        memberIds.push(storeMember.id);
+                        const managerId = storeMember.id;
 
                         const chatRoom = chatRoomFixture(
-                            chatRoomName, managerId, memberIds.filter(id => id !== managerId)
+                            chatRoomName, managerId, []
                         );
 
                         const storedChatRoom = await prismaConfig.chatRoom.create({
                             data: chatRoom,
-                        });
-
-                        const token = jwtService.sign({
-                            sub: storeMember.id.toString(),
-                        }, {
-                            secret: configService.get<string>("JWT_SECRET_KEY") ?? "secret",
                         });
 
                         // when
@@ -409,121 +478,34 @@ describe("ChatRoom Test (e2e)", () => {
                                 MemberRoom: true,
                             },
                         });
-                        expect(true).toBe(actualChatRoom?.MemberRoom.some(
-                            memberRoom => memberRoom.memberId !== storeMember.id)
-                        );
+                        expect(actualChatRoom).toBeNull();
                     });
                 });
-                describe("관리자이면, ", () => {
-                    describe("혼자 남은 경우,", () => {
-                        it("채팅방을 나가고, 채팅방도 삭제해야 한다. ", async () => {
-                            // given
-                            const currentPassword = generateRandomPasswordFunction();
-                            const encryptedPassword = await bcrypt.hash(currentPassword, await bcrypt.genSalt());
-                            const member = memberFixture(encryptedPassword);
-                            const storeMember = await prismaConfig.member.create({
-                                data: member,
-                            });
 
-                            const randomNumber = Math.ceil(Math.random() * 20);
-                            const members = [];
-                            for (let i = 0; i < randomNumber; i++) {
-                                const randomMember = memberRandomFixture(
-                                    await bcrypt.hash(generateRandomPasswordFunction(), await bcrypt.genSalt()), i
-                                );
-                                const storedRandomMember = await prismaConfig.member.create({
-                                    data: randomMember,
-                                });
-                                members.push(storedRandomMember);
-                            }
-
-                            const chatRoomName = "Algorithm";
-                            const managerId = storeMember.id;
-
-                            const chatRoom = chatRoomFixture(
-                                chatRoomName, managerId, []
-                            );
-
-                            const storedChatRoom = await prismaConfig.chatRoom.create({
-                                data: chatRoom,
-                            });
-
-                            const token = jwtService.sign({
-                                sub: storeMember.id.toString(),
-                            }, {
-                                secret: configService.get<string>("JWT_SECRET_KEY") ?? "secret",
-                            });
-
-                            // when
-                            const response = await request(app.getHttpServer())
-                                .delete(`/chat-rooms/${storedChatRoom.id.toString()}`)
-                                .set("Authorization", `Bearer ${token}`)
-                                .expect(HttpStatus.OK);
-
-                            // then
-                            const actual = response.body as CustomResponse<LeaveChatRoomResponseDto>;
-                            expect(actual.customStatus.code).toStrictEqual(ResponseStatus.CHAT_ROOM_S003.code);
-                            const actualChatRoom = await prismaConfig.chatRoom.findUnique({
-                                where: {
-                                    id: storedChatRoom.id,
-                                },
-                                include: {
-                                    MemberRoom: true,
-                                },
-                            });
-                            expect(actualChatRoom).toBeNull();
+                describe("혼자 남지 않은 경우,", () => {
+                    it("혼자 남지 않으면 채팅방을 나갈 수 없는 예외를 발생시켜야 한다. ", async () => {
+                        // given
+                        const chatRoomName = "Algorithm";
+                        const managerId = storeMember.id;
+                        const memberIds = members.map(member => member!.id);
+                        const chatRoom = chatRoomFixture(
+                            chatRoomName, managerId, memberIds.filter(id => id !== managerId)
+                        );
+                        const storedChatRoom = await prismaConfig.chatRoom.create({
+                            data: chatRoom,
                         });
+
+                        // when
+                        const response = await request(app.getHttpServer())
+                            .delete(`/chat-rooms/${storedChatRoom.id.toString()}`)
+                            .set("Authorization", `Bearer ${token}`)
+                            .expect(HttpStatus.BAD_REQUEST);
+
+                        // then
+                        const actual = response.body as CustomResponse<ErrorDataDto>;
+                        expect(actual.customStatus).toStrictEqual(ResponseStatus.CHAT_ROOM_F005);
+
                     });
-
-                    describe("혼자 남지 않은 경우,", () => {
-                        it("혼자 남지 않으면 채팅방을 나갈 수 없는 예외를 발생시켜야 한다. ", async () => {
-                            // given
-                            const currentPassword = generateRandomPasswordFunction();
-                            const encryptedPassword = await bcrypt.hash(currentPassword, await bcrypt.genSalt());
-                            const member = memberFixture(encryptedPassword);
-                            const storeMember = await prismaConfig.member.create({
-                                data: member,
-                            });
-                            const randomNumber = Math.ceil(Math.random() * 20);
-                            const members = [];
-                            for (let i = 0; i < randomNumber; i++) {
-                                const randomMember = memberRandomFixture(
-                                    await bcrypt.hash(generateRandomPasswordFunction(), await bcrypt.genSalt()), i
-                                );
-                                const storedRandomMember = await prismaConfig.member.create({
-                                    data: randomMember,
-                                });
-                                members.push(storedRandomMember);
-                            }
-                            const chatRoomName = "Algorithm";
-                            const managerId = storeMember.id;
-                            const memberIds = members.map(member => member.id);
-                            const chatRoom = chatRoomFixture(
-                                chatRoomName, managerId, memberIds.filter(id => id !== managerId)
-                            );
-                            const storedChatRoom = await prismaConfig.chatRoom.create({
-                                data: chatRoom,
-                            });
-
-                            const token = jwtService.sign({
-                                sub: storeMember.id.toString(),
-                            }, {
-                                secret: configService.get<string>("JWT_SECRET_KEY") ?? "secret",
-                            });
-
-                            // when
-                            const response = await request(app.getHttpServer())
-                                .delete(`/chat-rooms/${storedChatRoom.id.toString()}`)
-                                .set("Authorization", `Bearer ${token}`)
-                                .expect(HttpStatus.BAD_REQUEST);
-
-                            // then
-                            const actual = response.body as CustomResponse<ErrorDataDto>;
-                            expect(actual.customStatus).toStrictEqual(ResponseStatus.CHAT_ROOM_F005);
-
-                        });
-                    });
-
                 });
             });
         });
