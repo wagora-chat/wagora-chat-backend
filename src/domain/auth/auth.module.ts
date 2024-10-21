@@ -15,6 +15,9 @@ import {
 import {
     JwtStrategy,
 } from "./strategies/jwt.strategy";
+import {
+    FileModule,
+} from "../file/file.module";
 
 @Module({
     imports: [
@@ -23,6 +26,7 @@ import {
                 expiresIn: "1h",
             },
         }),
+        FileModule,
     ],
     exports: [],
     controllers: [AuthController,],

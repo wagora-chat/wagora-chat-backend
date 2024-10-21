@@ -1,5 +1,16 @@
 import {
-    Body, Controller, Get, HttpCode, HttpStatus, Logger, Patch, Post, Query,
+    Body,
+    Controller,
+    FileTypeValidator,
+    Get,
+    HttpCode,
+    HttpStatus,
+    Logger,
+    MaxFileSizeValidator, ParseFilePipe,
+    Patch,
+    Post,
+    Query,
+    UploadedFile,
 } from "@nestjs/common";
 import AuthService from "./auth.service";
 import SignupRequestDto from "./dto/req/signup.request.dto";
@@ -40,6 +51,9 @@ import {
     SendTempPasswordRequestDto,
 } from "./dto/req/send-temp-password.request.dto";
 import SendTempPasswordResponseDto from "./dto/res/send-temp-password.response.dto";
+import {
+    FileUploadSwaggerDecorator,
+} from "../../util/decorators/dto-swagger.decorator";
 
 @ApiTags("auth")
 @Controller("/auth")
@@ -54,6 +68,7 @@ export default class AuthController {
 
     /**
      * 회원가입 API
+     * @param file
      * @param body
      */
     @ApiOperation({
@@ -61,12 +76,28 @@ export default class AuthController {
         description: "인증된 이메일로 1시간 이내로, 회원가입을 한다.",
     })
     @ApiCustomResponseDecorator(SignupResponseDto)
+    @FileUploadSwaggerDecorator()
     @Post("/signup")
     async signup(
+        @UploadedFile(
+            new ParseFilePipe({
+                validators: [
+                    new MaxFileSizeValidator({
+                        // 3mb 까지 업로드 가능
+                        maxSize: 1024*1024*3,
+                    }),
+                    new FileTypeValidator({
+                        // 확장자는 이미지만 가능
+                        fileType: /\.(jpeg|jpg|png)$/,
+                    }),
+                ],
+            }),
+
+        ) file: Express.Multer.File,
         @Body(CheckPasswordPipe) body: SignupRequestDto
     ): Promise<CustomResponse<SignupResponseDto>> {
         this.logger.log("[signup] start");
-        const result: SignupResponseDto = await this.authService.signup(body);
+        const result: SignupResponseDto = await this.authService.signup(body, file);
         this.logger.log("[signup] finish");
 
         return new CustomResponse<SignupResponseDto>(
