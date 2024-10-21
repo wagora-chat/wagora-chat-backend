@@ -14,8 +14,6 @@ model File {
   size          BigInt
   mime          String    @db.VarChar(50)
   createdAt     DateTime  @default(now()) @map("created_at")
-  memberId      BigInt    @map("member_id")
-  member        Member    @relation("Member", fields: [memberId], references: [id])
   profileMember Member?   @relation("ProfileFile")
   RoomFile      RoomFile?
 
@@ -30,7 +28,6 @@ model Member {
   profile         String       @db.VarChar(100)
   managedChatRoom ChatRoom[]
   memberRoom      MemberRoom[]
-  files           File[]       @relation("Member")
   fileId          BigInt?      @unique @map("file_id")
   profileFile     File?        @relation("ProfileFile", fields: [fileId], references: [id])
   chats           Chat[]
