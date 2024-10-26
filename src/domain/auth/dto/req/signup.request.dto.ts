@@ -79,4 +79,11 @@ export default class SignupRequestDto {
         message: "프로필 사진이 URL 형식과 맞지않습니다.",
     })
     readonly profile: string;
+
+    @ApiProperty({
+        type: "string",
+        format: "binary",
+        required: false,
+    })
+    file?: Express.Multer.File;
 }

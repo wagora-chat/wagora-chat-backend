@@ -25,7 +25,7 @@ export class FileService {
 
         const savedFile: File = await this.prismaService.file.create({
             data: {
-                name: file.filename,
+                name: file.originalname,
                 url: savedFilePath,
                 size: BigInt(file.size),
                 mime: file.mimetype,
@@ -33,6 +33,29 @@ export class FileService {
         });
 
         return savedFile.id;
+    }
+
+    async fileDelete(fileId: bigint): Promise<boolean> {
+        console.log("fileId", fileId);
+
+        const file = await this.prismaService.file.findUnique({
+            where: {
+                id: fileId, 
+            },
+        });
+        if (!file) {
+            return false;
+        }
+        // S3에 올라간 File 삭제
+        await this.s3Service.deleteProfileFile(file);
+
+        await this.prismaService.file.delete({
+            where: {
+                id: fileId,
+            },
+        });
+
+        return true;
     }
 
 }

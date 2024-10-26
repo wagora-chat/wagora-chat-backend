@@ -59,7 +59,8 @@ export default class AuthService {
         this.jwtSecret = configService.get<string>("JWT_SECRET") ?? "secret";
     }
 
-    async signup(signupRequestDto: SignupRequestDto, file: Express.Multer.File): Promise<SignupResponseDto> {
+    async signup(signupRequestDto: SignupRequestDto, file: Express.Multer.File | undefined):
+        Promise<SignupResponseDto> {
         const memberByEmail: ExistsMember = await this.prisma.member.findUnique({
             where: {
                 email: signupRequestDto.email,
@@ -86,9 +87,7 @@ export default class AuthService {
         }
         await this.client.del(signupRequestDto.email);
 
-        // File Upload
-        const fileId = await this.fileService.fileUpload(file);
-
+        const fileId = file ? await this.fileService.fileUpload(file) : null;
         const member: Member = await this.prisma.member.create({
             data: {
                 email: signupRequestDto.email,

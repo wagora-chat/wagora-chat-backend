@@ -1,6 +1,7 @@
 import {
+    DeleteObjectCommand,
     PutObjectCommand,
-    S3Client,
+    S3Client, S3ServiceException,
 } from "@aws-sdk/client-s3";
 import {
     ConfigService,
@@ -11,6 +12,9 @@ import {
 import {
     uuidFunction,
 } from "../util/func/uuid.function";
+import {
+    File,
+} from "@prisma/client";
 
 @Injectable()
 export class S3Service {
@@ -43,5 +47,24 @@ export class S3Service {
         await this.s3Client.send(command);
 
         return filePath;
+    }
+
+    public async deleteProfileFile(file: File) {
+        try {
+            const fileId = file.url.split("/")[-1];
+            const input = {
+                Bucket: this.configService.get("AWS_BUCKET_NAME"),
+                Key: fileId,
+            };
+            const command = new DeleteObjectCommand(input);
+            await this.s3Client.send(command);
+
+            return true;
+        } catch (error) {
+            console.log(error);
+
+            return false;
+        }
+
     }
 }
