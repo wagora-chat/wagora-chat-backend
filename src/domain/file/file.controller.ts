@@ -32,23 +32,24 @@ export class FileController {
     constructor(private readonly fileService: FileService) {
     }
 
-    @ApiOperation({
-        summary: "파일 업로드",
-        description: "파일읍 업로드 하고 저장된 경로를 반환받는다.",
-    })
-    @ApiCustomResponseDecorator(FileUploadResponseDto)
-    @UseInterceptors(FileInterceptor("file"))
-    @FileUploadSwaggerDecorator()
-    @HttpCode(HttpStatus.CREATED)
-    @Post()
-    async fileUpload(@UploadedFile() file: Express.Multer.File): Promise<CustomResponse<FileUploadResponseDto>> {
-        this.logger.log("[getChatRoomList] start");
-        const result = await this.fileService.fileUpload(file);
-        this.logger.log("[getChatRoomList] end");
-
-        return new CustomResponse(ResponseStatus.FILE_S001, {
-            filePath: result,
-        });
-    }
+    // FIXME: 파일업로드 기능 변경으로 인해, File API가 따로 나오지 않음
+    // @ApiOperation({
+    //     summary: "파일 업로드",
+    //     description: "파일읍 업로드 하고 저장된 경로를 반환받는다.",
+    // })
+    // @ApiCustomResponseDecorator(FileUploadResponseDto)
+    // @UseInterceptors(FileInterceptor("file"))
+    // @FileUploadSwaggerDecorator()
+    // @HttpCode(HttpStatus.CREATED)
+    // @Post()
+    // async fileUpload(@UploadedFile() file: Express.Multer.File): Promise<CustomResponse<FileUploadResponseDto>> {
+    //     this.logger.log("[getChatRoomList] start");
+    //     const result = await this.fileService.fileUpload(file);
+    //     this.logger.log("[getChatRoomList] end");
+    //
+    //     return new CustomResponse(ResponseStatus.FILE_S001, {
+    //         filePath: result,
+    //     });
+    // }
 
 }
