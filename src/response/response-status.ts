@@ -22,6 +22,7 @@ export const ResponseStatus = {
     AUTH_S005: createResponseStatus("AUTH_S005", "GET /auth/emails"),
     AUTH_S006: createResponseStatus("AUTH_S006", "GET /auth/login"),
     AUTH_S007: createResponseStatus("AUTH_S007", "POST /auth/passwords"),
+    MEMBER_S001: createResponseStatus("MEMBER_S001", "GET /members"),
     FILE_S001: createResponseStatus("FILE_S001", "POST /files"),
     CHAT_ROOM_F001: createResponseStatus("CHAT_ROOM_F001", "Prisma Error"),
     CHAT_ROOM_F002: createResponseStatus("CHAT_ROOM_F002", "Invalid Query Params"),
