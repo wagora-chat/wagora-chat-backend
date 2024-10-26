@@ -21,6 +21,9 @@ import {
     ConfigService,
 } from "@nestjs/config";
 import FileEntityGenerator from "./generators/file-entity.generator";
+import {
+    FileService,
+} from "../../file/file.service";
 
 const prismaMock = {
     member: {
@@ -30,6 +33,9 @@ const prismaMock = {
     file: {
         findUnique: jest.fn(),
     },
+};
+const fileServiceMock = {
+    fileUpload: jest.fn(),
 };
 const clientMock = {
     get: jest.fn(),
@@ -53,6 +59,10 @@ describe("AuthService", () => {
                 {
                     provide: PrismaConfig,
                     useValue: prismaMock,
+                },
+                {
+                    provide: FileService,
+                    useValue: fileServiceMock,
                 },
                 {
                     provide: getRedisToken("default"),

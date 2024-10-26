@@ -4,7 +4,6 @@ export const memberFixture
             email: "fixtureEmail@naver.com",
             password: encryptedPassword,
             nickname: "fixture",
-            profile: "fixtureProfile",
         };
     };
 
@@ -14,7 +13,6 @@ export const memberRandomFixture
             email: `fixtureEmail${count}@naver.com`,
             password: encryptedPassword,
             nickname: `fixture${count}`,
-            profile: "fixtureProfile",
         };
     };
 
