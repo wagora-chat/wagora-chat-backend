@@ -46,6 +46,12 @@ import {
 } from "./dto/request/invite-chat-room.request.dto";
 import DelegateAdminResponseDto from "./dto/response/delegate-admin.response.dto";
 import DelegateAdminRequestDto from "./dto/request/delegate-admin.request.dto";
+import {
+    UpdateChatRoomResponseDto,
+} from "./dto/response/update-chat-room.response.dto";
+import {
+    UpdateChatRoomRequestDto,
+} from "./dto/request/update-chat-room.request.dto";
 
 @ApiTags("ChatRoom")
 @UseGuards(JwtGuard)
@@ -120,6 +126,42 @@ export class ChatRoomController {
     }
 
     @ApiOperation({
+        summary: "채팅방 수정 API",
+        description: "채팅방 이름과 색깔을 수정한다.",
+    })
+    @ApiCustomResponseDecorator(UpdateChatRoomResponseDto)
+    @Patch("/:id")
+    async updateChatRoom(@Body() requestDto: UpdateChatRoomRequestDto,
+                         @Param("id", BigIntPipe) chatRoomId: bigint,
+                         @GetMember() member: Member) {
+        this.logger.log("[updateChatRoom] start");
+        const result = await this.chatRoomService.updateChatRoom(requestDto, chatRoomId, BigInt(member.id));
+        this.logger.log("[updateChatRoom] finish");
+
+        return new CustomResponse(
+            ResponseStatus.CHAT_ROOM_S006, result
+        );
+    }
+
+    @ApiOperation({
+        summary: "채팅방 관리자 권한 위임 API",
+        description: "채팅방 id를 기반으로 관리자가 관리자 권한을 위임할 수 있다.",
+    })
+    @ApiCustomResponseDecorator(DelegateAdminResponseDto)
+    @Patch(":id/delegate")
+    async delegateAdminChatRoom(@Body() requestDto: DelegateAdminRequestDto,
+                                @GetMember() member: Member,
+                                @Param("id", BigIntPipe) id: bigint,) {
+        this.logger.log("[delegateAdminChatRoom] start");
+        const result = await this.chatRoomService.delegateAdmin(requestDto, member.id, id);
+        this.logger.log("[delegateAdminChatRoom] finish");
+
+        return new CustomResponse(
+            ResponseStatus.CHAT_ROOM_S005, result
+        );
+    }
+
+    @ApiOperation({
         summary: "채팅방 나가기, 삭제 API",
         description: "채팅방 id를 기반으로 본인이 채팅방에서 나갈 수 있다.",
     })
@@ -135,24 +177,4 @@ export class ChatRoomController {
             ResponseStatus.CHAT_ROOM_S003, result
         );
     }
-
-    @ApiOperation({
-        summary: "채팅방 관리자 권한 위임 API",
-        description: "채팅방 id를 기반으로 관리자가 관리자 권한을 위임할 수 있다.",
-    })
-    @ApiCustomResponseDecorator(DelegateAdminResponseDto)
-    @HttpCode(HttpStatus.OK)
-    @Patch(":id/delegate")
-    async delegateAdminChatRoom(@Body() requestDto: DelegateAdminRequestDto,
-                                @GetMember() member: Member,
-                                @Param("id", BigIntPipe) id: bigint,) {
-        this.logger.log("[delegateAdminChatRoom] start");
-        const result = await this.chatRoomService.delegateAdmin(requestDto, member.id, id);
-        this.logger.log("[delegateAdminChatRoom] finish");
-
-        return new CustomResponse(
-            ResponseStatus.CHAT_ROOM_S005, result
-        );
-    }
-
 }

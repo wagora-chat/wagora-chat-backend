@@ -48,6 +48,12 @@ import DelegateAdminRequestDto from "./dto/request/delegate-admin.request.dto";
 import InvalidAccessException from "../../exception/Invalid-access.exception";
 import ChatRoomNotIncludeMemberException from "../../exception/chat-room-not-include-member.exception";
 import DelegateAdminResponseDto from "./dto/response/delegate-admin.response.dto";
+import {
+    UpdateChatRoomRequestDto,
+} from "./dto/request/update-chat-room.request.dto";
+import {
+    UpdateChatRoomResponseDto,
+} from "./dto/response/update-chat-room.response.dto";
 
 @Injectable()
 export class ChatRoomService {
@@ -227,7 +233,7 @@ export class ChatRoomService {
             },
         });
 
-        if(members.length !== ids.length) {
+        if (members.length !== ids.length) {
             throw new MemberNotExistException(ResponseStatus.CHAT_ROOM_F006);
         }
 
@@ -235,7 +241,7 @@ export class ChatRoomService {
         const existingMembers = chatRoom.MemberRoom.map(mr => mr.memberId);
         const addMemberIds = members.filter(member => !existingMembers.includes(member.id));
 
-        if(addMemberIds.length !== members.length) {
+        if (addMemberIds.length !== members.length) {
             throw new MemberAlreadyJoinedException(ResponseStatus.CHAT_ROOM_F006);
         }
 
@@ -286,5 +292,42 @@ export class ChatRoomService {
 
         return new DelegateAdminResponseDto(updateChatRoom.id);
 
+    }
+
+    async updateChatRoom(
+        requestDto: UpdateChatRoomRequestDto,
+        roomId: bigint,
+        managerId: bigint,
+    ): Promise<UpdateChatRoomResponseDto> {
+        const chatRoom = await this.prisma.chatRoom.findUnique({
+            where: {
+                id: roomId,
+            },
+
+            select: {
+                id: true,
+                managerId: true,
+            },
+        });
+
+        if (!chatRoom) {
+            throw new ChatRoomNotFoundException(ResponseStatus.CHAT_ROOM_F004);
+        }
+
+        if(chatRoom.managerId !== (managerId)) {
+            throw new InvalidAccessException(ResponseStatus.CHAT_ROOM_F010);
+        }
+
+        const updateChatRoom = await this.prisma.chatRoom.update({
+            where: {
+                id: roomId,
+            },
+            data: {
+                name: requestDto.name,
+                color: requestDto.color,
+            },
+        });
+
+        return new UpdateChatRoomResponseDto(updateChatRoom.id.toString());
     }
 }
