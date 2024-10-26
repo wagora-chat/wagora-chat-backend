@@ -40,9 +40,6 @@ import {
 import {
     FileNotFoundException,
 } from "../../exception/file-not-found.exception";
-import {
-    FileService,
-} from "../file/file.service";
 
 export type ExistsMember = Member | null;
 
@@ -53,14 +50,11 @@ export default class AuthService {
     constructor(@Inject(PrismaConfig) private readonly prisma: PrismaClient,
                 @InjectRedis() private readonly client: Redis,
                 configService: ConfigService,
-                private readonly jwtService: JwtService,
-                private readonly fileService: FileService
-    ) {
+                private readonly jwtService: JwtService) {
         this.jwtSecret = configService.get<string>("JWT_SECRET") ?? "secret";
     }
 
-    async signup(signupRequestDto: SignupRequestDto, file: Express.Multer.File | undefined):
-        Promise<SignupResponseDto> {
+    async signup(signupRequestDto: SignupRequestDto): Promise<SignupResponseDto> {
         const memberByEmail: ExistsMember = await this.prisma.member.findUnique({
             where: {
                 email: signupRequestDto.email,
@@ -87,13 +81,12 @@ export default class AuthService {
         }
         await this.client.del(signupRequestDto.email);
 
-        const fileId = file ? await this.fileService.fileUpload(file) : null;
         const member: Member = await this.prisma.member.create({
             data: {
                 email: signupRequestDto.email,
                 password: await bcrypt.hash(signupRequestDto.password, 10),
                 nickname: signupRequestDto.nickname,
-                fileId,
+                profile: signupRequestDto.profile,
             },
         });
 
@@ -147,7 +140,6 @@ export default class AuthService {
         );
     }
 
-    // FIXME: 사용하지 않고, 불필요한 함수 (Service 없이, Prisma 직접 사용)
     private async validateProfile(profile?: bigint) {
         if (profile) {
             const file = await this.prisma.file.findUnique({
