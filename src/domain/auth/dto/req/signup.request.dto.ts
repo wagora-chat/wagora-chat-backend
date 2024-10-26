@@ -70,17 +70,6 @@ export default class SignupRequestDto {
     readonly nickname: string;
 
     @ApiProperty({
-        type: String,
-        description: "프로필 사진 경로",
-        required: false,
-        example: "https://...",
-    })
-    @IsUrl({}, {
-        message: "프로필 사진이 URL 형식과 맞지않습니다.",
-    })
-    readonly profile: string;
-
-    @ApiProperty({
         type: "string",
         format: "binary",
         required: false,

@@ -93,7 +93,6 @@ export default class AuthService {
                 email: signupRequestDto.email,
                 password: await bcrypt.hash(signupRequestDto.password, 10),
                 nickname: signupRequestDto.nickname,
-                profile: signupRequestDto.profile,
                 fileId,
             },
         });

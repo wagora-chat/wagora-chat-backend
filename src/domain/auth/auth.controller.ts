@@ -80,23 +80,22 @@ export default class AuthController {
     @UseInterceptors(FileInterceptor("file"))
     @ApiConsumes("multipart/form-data")
     @Post("/signup")
-    async signup(
-        @UploadedFile(
-            new ParseFilePipe({
-                fileIsRequired: false,
-                validators: [
-                    new MaxFileSizeValidator({
-                        // 3mb 까지 업로드 가능
-                        maxSize: 1024*1024*3,
-                    }),
-                    new FileTypeValidator({
-                        // 확장자는 이미지만 가능
-                        fileType: /image\/(jpeg|jpg|png)$/,
-                    }),
-                ],
-            }),
-        ) file: Express.Multer.File | undefined,
-        @Body(CheckPasswordPipe) body: SignupRequestDto
+    async signup(@Body(CheckPasswordPipe) body: SignupRequestDto,
+                 @UploadedFile(
+                     new ParseFilePipe({
+                         fileIsRequired: false,
+                         validators: [
+                             new MaxFileSizeValidator({
+                                 // 3mb 까지 업로드 가능
+                                 maxSize: 1024 * 1024 * 3,
+                             }),
+                             new FileTypeValidator({
+                                 // 확장자는 이미지만 가능
+                                 fileType: /image\/(jpeg|jpg|png)$/,
+                             }),
+                         ],
+                     }),
+                 ) file: Express.Multer.File | undefined,
     ): Promise<CustomResponse<SignupResponseDto>> {
         this.logger.log("[signup] start");
         const result: SignupResponseDto = await this.authService.signup(body, file);
