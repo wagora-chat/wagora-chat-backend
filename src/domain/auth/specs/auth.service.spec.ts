@@ -21,6 +21,9 @@ import {
     ConfigService,
 } from "@nestjs/config";
 import FileEntityGenerator from "./generators/file-entity.generator";
+import {
+    FileService,
+} from "../../file/file.service";
 
 const prismaMock = {
     member: {
@@ -30,6 +33,9 @@ const prismaMock = {
     file: {
         findUnique: jest.fn(),
     },
+};
+const fileServiceMock = {
+    fileUpload: jest.fn(),
 };
 const clientMock = {
     get: jest.fn(),
@@ -53,6 +59,10 @@ describe("AuthService", () => {
                 {
                     provide: PrismaConfig,
                     useValue: prismaMock,
+                },
+                {
+                    provide: FileService,
+                    useValue: fileServiceMock,
                 },
                 {
                     provide: getRedisToken("default"),
@@ -88,7 +98,8 @@ describe("AuthService", () => {
             prismaMock.file.findUnique.mockResolvedValue(file);
             clientMock.get.mockResolvedValue("validate");
 
-            const result = await authService.signup(signupRequestDto);
+            const mockFile: Express.Multer.File | undefined = undefined;
+            const result = await authService.signup(signupRequestDto, mockFile);
 
             expect(result).not.toBeNull();
             expect(result.id).toBe(member.id.toString());
@@ -98,7 +109,8 @@ describe("AuthService", () => {
             prismaMock.member.findUnique.mockResolvedValue(member);
 
             try {
-                await authService.signup(signupRequestDto);
+                const mockFile: Express.Multer.File | undefined = undefined;
+                await authService.signup(signupRequestDto, mockFile);
             } catch (error) {
                 expect(error).toBeInstanceOf(DuplicateEmailException);
             }
