@@ -1,5 +1,5 @@
 import {
-    Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Post, Query, UseGuards,
+    Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query, UseGuards,
 } from "@nestjs/common";
 import {
     ChatRoomService,
@@ -44,6 +44,8 @@ import {
 import {
     InviteChatRoomRequestDto,
 } from "./dto/request/invite-chat-room.request.dto";
+import DelegateAdminResponseDto from "./dto/response/delegate-admin.response.dto";
+import DelegateAdminRequestDto from "./dto/request/delegate-admin.request.dto";
 
 @ApiTags("ChatRoom")
 @UseGuards(JwtGuard)
@@ -131,6 +133,25 @@ export class ChatRoomController {
 
         return new CustomResponse(
             ResponseStatus.CHAT_ROOM_S003, result
+        );
+    }
+
+    @ApiOperation({
+        summary: "채팅방 관리자 권한 위임 API",
+        description: "채팅방 id를 기반으로 관리자가 관리자 권한을 위임할 수 있다.",
+    })
+    @ApiCustomResponseDecorator(DelegateAdminResponseDto)
+    @HttpCode(HttpStatus.OK)
+    @Patch(":id/delegate")
+    async delegateAdminChatRoom(@Body() requestDto: DelegateAdminRequestDto,
+                                @GetMember() member: Member,
+                                @Param("id", BigIntPipe) id: bigint,) {
+        this.logger.log("[delegateAdminChatRoom] start");
+        const result = await this.chatRoomService.delegateAdmin(requestDto, member.id, id);
+        this.logger.log("[delegateAdminChatRoom] finish");
+
+        return new CustomResponse(
+            ResponseStatus.CHAT_ROOM_S005, result
         );
     }
 

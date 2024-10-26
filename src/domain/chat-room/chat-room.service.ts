@@ -44,6 +44,10 @@ import {
 import {
     NoPermissionInviteException,
 } from "../../exception/no-permission-invite.exception";
+import DelegateAdminRequestDto from "./dto/request/delegate-admin.request.dto";
+import InvalidAccessException from "../../exception/Invalid-access.exception";
+import ChatRoomNotIncludeMemberException from "../../exception/chat-room-not-include-member.exception";
+import DelegateAdminResponseDto from "./dto/response/delegate-admin.response.dto";
 
 @Injectable()
 export class ChatRoomService {
@@ -243,5 +247,44 @@ export class ChatRoomService {
         });
 
         return new InviteChatRoomResponseDto(`${addMemberIds.length}명의 회원이 채팅방에 초대되었습니다.`);
+    }
+
+    async delegateAdmin(
+        requestDto: DelegateAdminRequestDto,
+        adminId: bigint,
+        roomId: bigint
+    ): Promise<DelegateAdminResponseDto> {
+        const chatRoom = await this.prisma.chatRoom.findUnique({
+            where: {
+                id: roomId,
+            },
+            include: {
+                MemberRoom: true,
+            },
+        });
+
+        if (!chatRoom) {
+            throw new ChatRoomNotFoundException(ResponseStatus.CHAT_ROOM_F004);
+        }
+
+        if (chatRoom.managerId !== adminId) {
+            throw new InvalidAccessException(ResponseStatus.CHAT_ROOM_F008);
+        }
+
+        if (!chatRoom.MemberRoom.map(mr => mr.memberId).includes(BigInt(requestDto.id))) {
+            throw new ChatRoomNotIncludeMemberException(ResponseStatus.CHAT_ROOM_F009);
+        }
+
+        const updateChatRoom = await this.prisma.chatRoom.update({
+            where: {
+                id: roomId,
+            },
+            data: {
+                managerId: requestDto.id,
+            },
+        });
+
+        return new DelegateAdminResponseDto(updateChatRoom.id);
+
     }
 }
