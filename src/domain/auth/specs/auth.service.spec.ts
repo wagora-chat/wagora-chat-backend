@@ -88,7 +88,8 @@ describe("AuthService", () => {
             prismaMock.file.findUnique.mockResolvedValue(file);
             clientMock.get.mockResolvedValue("validate");
 
-            const result = await authService.signup(signupRequestDto);
+            const mockFile: Express.Multer.File | undefined = undefined;
+            const result = await authService.signup(signupRequestDto, mockFile);
 
             expect(result).not.toBeNull();
             expect(result.id).toBe(member.id.toString());
@@ -98,7 +99,8 @@ describe("AuthService", () => {
             prismaMock.member.findUnique.mockResolvedValue(member);
 
             try {
-                await authService.signup(signupRequestDto);
+                const mockFile: Express.Multer.File | undefined = undefined;
+                await authService.signup(signupRequestDto, mockFile);
             } catch (error) {
                 expect(error).toBeInstanceOf(DuplicateEmailException);
             }
