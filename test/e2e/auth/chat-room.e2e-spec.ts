@@ -66,6 +66,8 @@ import {
 import {
     Member,
 } from "@prisma/client";
+import DelegateAdminResponseDto from "../../../src/domain/chat-room/dto/response/delegate-admin.response.dto";
+import DelegateAdminRequestDto from "../../../src/domain/chat-room/dto/request/delegate-admin.request.dto";
 
 describe("ChatRoom Test (e2e)", () => {
     let app: INestApplication<any>;
@@ -510,5 +512,123 @@ describe("ChatRoom Test (e2e)", () => {
             });
         });
 
+    });
+
+    describe("delegateAdmin", () => {
+        describe("채팅방의 관리자는", () => {
+            describe("관리자 권한을", () => {
+                it("존재하지 않는 채팅방에 위임 요청을 할 수 없다.", async () => {
+                    // given
+                    // when
+                    const response = await request(app.getHttpServer())
+                        .patch("/chat-rooms/1234/delegate")
+                        .set("Authorization", `Bearer ${token}`)
+                        .send({
+                            id: 1,
+                        })
+                        .expect(HttpStatus.NOT_FOUND);
+
+                    // then
+                    const actual = response.body as CustomResponse<ErrorDataDto>;
+                    expect(actual.customStatus).toStrictEqual(ResponseStatus.CHAT_ROOM_F004);
+                });
+                describe("채팅방에 있는 회원에게", () => {
+                    it("위임할 수 있다.", async () => {
+                        // given
+                        const chatRoomName = "Algorithm";
+                        const managerId = storeMember.id;
+                        const memberIds = members.map(member => member!.id);
+                        const chatRoom = chatRoomFixture(
+                            chatRoomName, managerId, memberIds.filter(id => id !== managerId)
+                        );
+                        const storedChatRoom = await prismaConfig.chatRoom.create({
+                            data: chatRoom,
+                        });
+
+                        const nextAdmin = memberIds[0];
+                        const requestDto: DelegateAdminRequestDto = {
+                            id: Number(nextAdmin),
+                        };
+
+                        // when
+                        const response = await request(app.getHttpServer())
+                            .patch(`/chat-rooms/${storedChatRoom.id.toString()}/delegate`)
+                            .set("Authorization", `Bearer ${token}`)
+                            .send(requestDto)
+                            .expect(HttpStatus.OK);
+
+                        // then
+                        const actual = response.body as CustomResponse<DelegateAdminResponseDto>;
+                        expect(actual.customStatus).toStrictEqual(ResponseStatus.CHAT_ROOM_S005);
+
+                    });
+                });
+
+                describe("없는 회원에게", () => {
+                    it("위임할 수 없다.", async () => {
+                        // given
+                        const chatRoomName = "Algorithm";
+                        const managerId = storeMember.id;
+                        const memberIds = members.map(member => member!.id);
+                        const chatRoom = chatRoomFixture(
+                            chatRoomName, managerId, memberIds
+                                .filter(id => id !== managerId)
+                                .slice(1)
+                        );
+                        const storedChatRoom = await prismaConfig.chatRoom.create({
+                            data: chatRoom,
+                        });
+
+                        const nextAdmin = memberIds[0];
+                        const requestDto: DelegateAdminRequestDto = {
+                            id: Number(nextAdmin),
+                        };
+
+                        // when
+                        const response = await request(app.getHttpServer())
+                            .patch(`/chat-rooms/${storedChatRoom.id.toString()}/delegate`)
+                            .set("Authorization", `Bearer ${token}`)
+                            .send(requestDto)
+                            .expect(HttpStatus.BAD_REQUEST);
+
+                        // then
+                        const actual = response.body as CustomResponse<ErrorDataDto>;
+                        expect(actual.customStatus).toStrictEqual(ResponseStatus.CHAT_ROOM_F009);
+
+                    });
+                });
+            });
+
+            describe("자신이 관리자가 아닌 채팅방에", () => {
+                it("위임 요청을 할 수 없다.", async () => {
+                    // given
+                    const chatRoomName = "Algorithm";
+                    const managerId = storeMember.id;
+                    const memberIds = members.map(member => member!.id);
+                    const chatRoom = chatRoomFixture(
+                        chatRoomName, memberIds[0], memberIds
+                            .filter(id => id !== managerId)
+                            .slice(1)
+                    );
+                    const storedChatRoom = await prismaConfig.chatRoom.create({
+                        data: chatRoom,
+                    });
+
+                    // when
+                    const response = await request(app.getHttpServer())
+                        .patch(`/chat-rooms/${storedChatRoom.id.toString()}/delegate`)
+                        .set("Authorization", `Bearer ${token}`)
+                        .send({
+                            id: Number(memberIds[1]),
+                        })
+                        .expect(HttpStatus.FORBIDDEN);
+
+                    // then
+                    const actual = response.body as CustomResponse<ErrorDataDto>;
+                    expect(actual.customStatus).toStrictEqual(ResponseStatus.CHAT_ROOM_F008);
+                });
+
+            });
+        });
     });
 });
