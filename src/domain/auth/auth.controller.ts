@@ -1,16 +1,5 @@
 import {
-    Body,
-    Controller,
-    FileTypeValidator,
-    Get,
-    HttpCode,
-    HttpStatus,
-    Logger,
-    MaxFileSizeValidator, ParseFilePipe,
-    Patch,
-    Post,
-    Query,
-    UploadedFile, UseInterceptors,
+    Body, Controller, Get, HttpCode, HttpStatus, Logger, Patch, Post, Query,
 } from "@nestjs/common";
 import AuthService from "./auth.service";
 import SignupRequestDto from "./dto/req/signup.request.dto";
@@ -33,7 +22,6 @@ import {
     EmailService,
 } from "./email.service";
 import {
-    ApiBody, ApiConsumes,
     ApiOperation, ApiTags,
 } from "@nestjs/swagger";
 import CheckDuplicateNicknameParamsDto from "./dto/req/check-duplicate-nickname.params.dto";
@@ -52,9 +40,6 @@ import {
     SendTempPasswordRequestDto,
 } from "./dto/req/send-temp-password.request.dto";
 import SendTempPasswordResponseDto from "./dto/res/send-temp-password.response.dto";
-import {
-    FileInterceptor,
-} from "@nestjs/platform-express";
 
 @ApiTags("auth")
 @Controller("/auth")
@@ -69,7 +54,6 @@ export default class AuthController {
 
     /**
      * 회원가입 API
-     * @param file
      * @param body
      */
     @ApiOperation({
@@ -77,28 +61,12 @@ export default class AuthController {
         description: "인증된 이메일로 1시간 이내로, 회원가입을 한다.",
     })
     @ApiCustomResponseDecorator(SignupResponseDto)
-    @UseInterceptors(FileInterceptor("file"))
-    @ApiConsumes("multipart/form-data")
     @Post("/signup")
-    async signup(@Body(CheckPasswordPipe) body: SignupRequestDto,
-                 @UploadedFile(
-                     new ParseFilePipe({
-                         fileIsRequired: false,
-                         validators: [
-                             new MaxFileSizeValidator({
-                                 // 3mb 까지 업로드 가능
-                                 maxSize: 1024 * 1024 * 3,
-                             }),
-                             new FileTypeValidator({
-                                 // 확장자는 이미지만 가능
-                                 fileType: /image\/(jpeg|jpg|png)$/,
-                             }),
-                         ],
-                     }),
-                 ) file: Express.Multer.File | undefined,
+    async signup(
+        @Body(CheckPasswordPipe) body: SignupRequestDto
     ): Promise<CustomResponse<SignupResponseDto>> {
         this.logger.log("[signup] start");
-        const result: SignupResponseDto = await this.authService.signup(body, file);
+        const result: SignupResponseDto = await this.authService.signup(body);
         this.logger.log("[signup] finish");
 
         return new CustomResponse<SignupResponseDto>(

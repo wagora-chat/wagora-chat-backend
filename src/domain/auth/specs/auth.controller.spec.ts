@@ -55,9 +55,8 @@ describe("AuthController", () => {
 
         it("성공 코드와 함께 새로 생성된 회원의 ID가 반환된다.", async () => {
             authServiceMock.signup.mockResolvedValue(signupResponseDto);
-            const mockFile: Express.Multer.File | undefined = undefined;
 
-            const result = await authController.signup(signupRequestDto, mockFile);
+            const result = await authController.signup(signupRequestDto);
 
             expect(result).not.toBeNull();
             expect(result.data.id).toBe(signupResponseDto.id);
