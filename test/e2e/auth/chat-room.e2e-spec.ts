@@ -68,6 +68,12 @@ import {
 } from "@prisma/client";
 import DelegateAdminResponseDto from "../../../src/domain/chat-room/dto/response/delegate-admin.response.dto";
 import DelegateAdminRequestDto from "../../../src/domain/chat-room/dto/request/delegate-admin.request.dto";
+import {
+    UpdateChatRoomResponseDto,
+} from "../../../src/domain/chat-room/dto/response/update-chat-room.response.dto";
+import {
+    UpdateChatRoomRequestDto,
+} from "../../../src/domain/chat-room/dto/request/update-chat-room.request.dto";
 
 describe("ChatRoom Test (e2e)", () => {
     let app: INestApplication<any>;
@@ -628,6 +634,94 @@ describe("ChatRoom Test (e2e)", () => {
                     expect(actual.customStatus).toStrictEqual(ResponseStatus.CHAT_ROOM_F008);
                 });
 
+            });
+        });
+    });
+
+    describe("채팅방 수정", () => {
+        describe("사용자가 채팅방의 관리자일 때", () => {
+            it("채팅방 수정이 성공적으로 이루어져야 한다.", async () => {
+                // given
+                const chatRoomName = "이전 이름";
+                const managerId = storeMember.id;
+                const chatRoom = chatRoomFixture(chatRoomName, managerId, []);
+                const storedChatRoom = await prismaConfig.chatRoom.create({
+                    data: chatRoom,
+                });
+
+                const updateRequestDto: UpdateChatRoomRequestDto = {
+                    name: "수정된 이름",
+                    color: "#FF0000",
+                };
+
+                // when
+                const response = await request(app.getHttpServer())
+                    .patch(`/chat-rooms/${storedChatRoom.id.toString()}`)
+                    .send(updateRequestDto)
+                    .set("Authorization", `Bearer ${token}`)
+                    .expect(HttpStatus.OK);
+
+                // then
+                const actual = response.body as CustomResponse<UpdateChatRoomResponseDto>;
+                expect(actual.customStatus).toStrictEqual(ResponseStatus.CHAT_ROOM_S006);
+
+                const updatedChatRoom = await prismaConfig.chatRoom.findUnique({
+                    where: {
+                        id: storedChatRoom.id,
+                    },
+                });
+
+                expect(updatedChatRoom!.name).toBe(updateRequestDto.name);
+                expect(updatedChatRoom!.color).toBe(updateRequestDto.color);
+            });
+        });
+
+        describe("사용자가 채팅방의 관리자가 아닐 때", () => {
+            it("권한이 없음을 나타내는 예외를 반환한다.", async () => {
+                // given
+                const chatRoomName = "이전 이름";
+                const managerId = members[0]!.id;
+                const chatRoom = chatRoomFixture(chatRoomName, managerId, []);
+                const storedChatRoom = await prismaConfig.chatRoom.create({
+                    data: chatRoom,
+                });
+
+                const updateRequestDto: UpdateChatRoomRequestDto = {
+                    name: "권한 없는 수정",
+                    color: "#00FF00",
+                };
+
+                // when
+                const response = await request(app.getHttpServer())
+                    .patch(`/chat-rooms/${storedChatRoom.id.toString()}`)
+                    .send(updateRequestDto)
+                    .set("Authorization", `Bearer ${token}`)
+                    .expect(HttpStatus.FORBIDDEN);
+
+                // then
+                const actual = response.body as CustomResponse<ErrorDataDto>;
+                expect(actual.customStatus).toStrictEqual(ResponseStatus.CHAT_ROOM_F010);
+            });
+        });
+
+        describe("존재하지 않는 채팅방을 수정하려고 할 때", () => {
+            it("채팅방이 없다는 예외를 반환해야 한다.", async () => {
+                // given
+                const updateRequestDto: UpdateChatRoomRequestDto = {
+                    name: "존재하지 않는 채팅방",
+                    color: "#123456",
+                };
+
+                // when
+                const response = await request(app.getHttpServer())
+                    .patch("/chat-rooms/9999")
+                    .send(updateRequestDto)
+                    .set("Authorization", `Bearer ${token}`)
+                    .expect(HttpStatus.NOT_FOUND);
+
+                // then
+                const actual = response.body as CustomResponse<ErrorDataDto>;
+                expect(actual.customStatus).toStrictEqual(ResponseStatus.CHAT_ROOM_F004);
             });
         });
     });
