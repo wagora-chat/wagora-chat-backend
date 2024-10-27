@@ -74,6 +74,8 @@ import {
 import {
     UpdateChatRoomRequestDto,
 } from "../../../src/domain/chat-room/dto/request/update-chat-room.request.dto";
+import GetChatRoomMembersResponseDto
+    from "../../../src/domain/chat-room/dto/response/get-chat-room-members.response.dto";
 
 describe("ChatRoom Test (e2e)", () => {
     let app: INestApplication<any>;
@@ -316,7 +318,7 @@ describe("ChatRoom Test (e2e)", () => {
         });
 
         describe("Query Param에 name 파라미터를 전달하면", () => {
-            it("자신인 속한 채팅방 중, name 이 제목에 들어간 채팅방 목록이 반환된다.", async () => {
+            it("자신이 속한 채팅방 중, name 이 제목에 들어간 채팅방 목록이 반환된다.", async () => {
                 // given
                 const randomNumber = Math.ceil(Math.random() * 10);
                 const chatRoomName = "Algorithm";
@@ -716,6 +718,59 @@ describe("ChatRoom Test (e2e)", () => {
                 const response = await request(app.getHttpServer())
                     .patch("/chat-rooms/9999")
                     .send(updateRequestDto)
+                    .set("Authorization", `Bearer ${token}`)
+                    .expect(HttpStatus.NOT_FOUND);
+
+                // then
+                const actual = response.body as CustomResponse<ErrorDataDto>;
+                expect(actual.customStatus).toStrictEqual(ResponseStatus.CHAT_ROOM_F004);
+            });
+        });
+    });
+
+    describe("채팅방 내 회원 조회", () => {
+        describe("채팅방 내 모든 회원 정보를 조회한다.", () => {
+            it("채팅방에 포함된 모든 회원을 조회하고, 관리자 여부를 확인한다.", async () => {
+                // given
+                const chatRoomName = "Algorithm";
+                const memberIds = members.map(member => member!.id);
+
+                if (!memberIds.includes(storeMember.id)) {
+                    memberIds.push(storeMember.id);
+                }
+
+                const chatRoom = chatRoomFixture(chatRoomName, storeMember.id, memberIds);
+                const storedChatRoom = await prismaConfig.chatRoom.create({
+                    data: chatRoom,
+                });
+
+                // when
+                const response = await request(app.getHttpServer())
+                    .get(`/chat-rooms/${storedChatRoom.id.toString()}/members`)
+                    .set("Authorization", `Bearer ${token}`)
+                    .expect(HttpStatus.OK);
+
+                // then
+                const actual = response.body as CustomResponse<GetChatRoomMembersResponseDto[]>;
+                expect(actual.customStatus).toStrictEqual(ResponseStatus.CHAT_ROOM_S007);
+                expect(actual.data.length).toBe(new Set([storeMember.id,
+                    ...memberIds,]).size);
+
+                // 관리자 확인
+                const managerMember = actual.data.find(member => member.id === storeMember.id.toString());
+                expect(managerMember).toBeDefined();
+                expect(managerMember!.isManager).toBe(true);
+            });
+        });
+
+        describe("존재하지 않는 채팅방을 조회할 때", () => {
+            it("존재하지 않는 채팅방 예외를 반환한다.", async () => {
+                // given
+                const invalidRoomId = 9999;
+
+                // when
+                const response = await request(app.getHttpServer())
+                    .get(`/chat-rooms/${invalidRoomId}/members`)
                     .set("Authorization", `Bearer ${token}`)
                     .expect(HttpStatus.NOT_FOUND);
 

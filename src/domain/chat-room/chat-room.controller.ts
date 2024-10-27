@@ -52,6 +52,7 @@ import {
 import {
     UpdateChatRoomRequestDto,
 } from "./dto/request/update-chat-room.request.dto";
+import GetChatRoomMembersResponseDto from "./dto/response/get-chat-room-members.response.dto";
 
 @ApiTags("ChatRoom")
 @UseGuards(JwtGuard)
@@ -122,6 +123,23 @@ export class ChatRoomController {
 
         return new CustomResponse(
             ResponseStatus.CHAT_ROOM_S002, result
+        );
+    }
+
+    @ApiOperation({
+        summary: "채팅방 내에 속한 회원 조회 API",
+        description: "채팅방 내에 속한 회원들을 조회한다.",
+    })
+    @ApiCustomResponseDecorator(GetChatRoomMembersResponseDto)
+    @Get("/:id/members")
+    async getChatRoomMembers(
+        @Param("id", BigIntPipe) chatRoomId: bigint) {
+        this.logger.log("[getChatRoomMembers] start");
+        const result = await this.chatRoomService.getChatRoomMembers(chatRoomId);
+        this.logger.log("[getChatRoomMembers] finish");
+
+        return new CustomResponse(
+            ResponseStatus.CHAT_ROOM_S007, result
         );
     }
 
