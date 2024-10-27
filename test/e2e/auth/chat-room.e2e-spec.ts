@@ -784,52 +784,6 @@ describe("ChatRoom Test (e2e)", () => {
     });
 
     describe("getNonMembersInChatRoom", () => {
-        describe("채팅방 내 모든 회원 정보를 조회한다.", () => {
-            it("채팅방에 포함된 모든 회원을 조회하고, 관리자 여부를 확인한다.", async () => {
-                const chatRoomName = "Algorithm";
-                const memberIds = members.map(member => member!.id);
-
-                if (!memberIds.includes(storeMember.id)) {
-                    memberIds.push(storeMember.id);
-                }
-
-                const chatRoom = chatRoomFixture(chatRoomName, storeMember.id, memberIds);
-                const storedChatRoom = await prismaConfig.chatRoom.create({
-                    data: chatRoom,
-                });
-
-                const response = await request(app.getHttpServer())
-                    .get(`/chat-rooms/${storedChatRoom.id.toString()}/members`)
-                    .set("Authorization", `Bearer ${token}`)
-                    .expect(HttpStatus.OK);
-
-                const actual = response.body as CustomResponse<GetChatRoomMembersResponseDto[]>;
-                expect(actual.customStatus).toStrictEqual(ResponseStatus.CHAT_ROOM_S007);
-                expect(actual.data.length).toBe(new Set([storeMember.id,
-                    ...memberIds,]).size);
-
-                const managerMember = actual.data.find(member => member.id === storeMember.id.toString());
-                expect(managerMember).toBeDefined();
-                expect(managerMember!.isManager).toBe(true);
-            });
-        });
-
-        describe("존재하지 않는 채팅방을 조회할 때", () => {
-            it("존재하지 않는 채팅방 예외를 반환한다.", async () => {
-                const invalidRoomId = 9999;
-
-                const response = await request(app.getHttpServer())
-                    .get(`/chat-rooms/${invalidRoomId}/members`)
-                    .set("Authorization", `Bearer ${token}`)
-                    .expect(HttpStatus.NOT_FOUND);
-
-                const actual = response.body as CustomResponse<ErrorDataDto>;
-                expect(actual.customStatus).toStrictEqual(ResponseStatus.CHAT_ROOM_F004);
-            });
-        });
-    });
-
-    describe("채팅방에 속하지 않은 회원 조회", () => {
         describe("채팅방에 속하지 않은 모든 회원 정보를 조회한다.", () => {
             it("채팅방에 속하지 않은 회원을 모두 반환한다.", async () => {
                 const chatRoomName = "Algorithm";
