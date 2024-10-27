@@ -53,6 +53,7 @@ import {
     UpdateChatRoomRequestDto,
 } from "./dto/request/update-chat-room.request.dto";
 import GetChatRoomMembersResponseDto from "./dto/response/get-chat-room-members.response.dto";
+import GetNonMembersInChatRoomResponseDto from "./dto/response/get-non-members-in-chat-room.response.dto";
 
 @ApiTags("ChatRoom")
 @UseGuards(JwtGuard)
@@ -141,6 +142,23 @@ export class ChatRoomController {
         return new CustomResponse(
             ResponseStatus.CHAT_ROOM_S007, result
         );
+    }
+
+    @ApiOperation({
+        summary: "채팅방에 속하지 않은 회원 조회 API",
+        description: "채팅방 초대 시, 채팅방에 속하지 않은 회원만 조회한다.",
+    })
+    @ApiCustomResponseDecorator(GetNonMembersInChatRoomResponseDto)
+    @Get("/:id/non-members")
+    async getNonMembersInChatRoom(@Param("id", BigIntPipe) chatRoomId: bigint) {
+        this.logger.log("[getNonMembersInChatRoom] start");
+        const result = await this.chatRoomService.getNonMembersInChatRoom(chatRoomId);
+        this.logger.log("[getNonMembersInChatRoom] finish");
+
+        return new CustomResponse(
+            ResponseStatus.CHAT_ROOM_S008, result
+        );
+
     }
 
     @ApiOperation({

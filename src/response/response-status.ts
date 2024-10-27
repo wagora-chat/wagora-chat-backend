@@ -41,6 +41,7 @@ export const ResponseStatus = {
     CHAT_ROOM_S005: createResponseStatus("CHAT_ROOM_S005", "PATCH /chat-rooms/:id/delegate"),
     CHAT_ROOM_S006: createResponseStatus("CHAT_ROOM_S006", "PATCH /chat-rooms/:id"),
     CHAT_ROOM_S007: createResponseStatus("CHAT_ROOM_S007", "GET /chat-rooms/:id/members"),
+    CHAT_ROOM_S008: createResponseStatus("CHAT_ROOM_S008", "GET /chat-rooms/:id/non-members"),
     CHAT_F001: createResponseStatus("CHAT_F001", "Member Not Exists"),
     CHAT_F002: createResponseStatus("CHAT_F002", "Chat Room Not Exists"),
     CHAT_F003: createResponseStatus("CHAT_F003", "Invalid Request to Send Chat"),
