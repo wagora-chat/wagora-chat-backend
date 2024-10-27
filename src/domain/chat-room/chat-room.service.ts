@@ -55,6 +55,7 @@ import {
     UpdateChatRoomResponseDto,
 } from "./dto/response/update-chat-room.response.dto";
 import GetChatRoomMembersResponseDto from "./dto/response/get-chat-room-members.response.dto";
+import GetNonMembersInChatRoomResponseDto from "./dto/response/get-non-members-in-chat-room.response.dto";
 
 @Injectable()
 export class ChatRoomService {
@@ -157,26 +158,79 @@ export class ChatRoomService {
             throw new ChatRoomNotFoundException(ResponseStatus.CHAT_ROOM_F004);
         }
 
-        const members = await this.prisma.memberRoom.findMany({
-            where: {
-                roomId: roomId,
-            },
-            include: {
-                member: {
-                    include: {
-                        profileFile: true,
+        try {
+            const members = await this.prisma.memberRoom.findMany({
+                where: {
+                    roomId: roomId,
+                },
+                include: {
+                    member: {
+                        include: {
+                            profileFile: true,
+                        },
                     },
                 },
+            });
+
+            return members.map(memberRoom => {
+                const isManager = memberRoom.member.id === chatRoom.managerId;
+
+                return new GetChatRoomMembersResponseDto(
+                    memberRoom.member.id.toString(), memberRoom.member.nickname, memberRoom.member.profileFile ? memberRoom.member.profileFile.url : null, isManager
+                );
+            });
+        } catch (error) {
+            throw new BadRequestException("Prisma Error", ResponseStatus.CHAT_ROOM_F001);
+        }
+    }
+
+    async getNonMembersInChatRoom(roomId: bigint): Promise<GetNonMembersInChatRoomResponseDto[]> {
+
+        const chatRoom = await this.prisma.chatRoom.findUnique({
+            where: {
+                id: roomId,
             },
         });
 
-        return members.map(memberRoom => {
-            const isManager = memberRoom.member.id === chatRoom.managerId;
+        if (!chatRoom) {
+            throw new ChatRoomNotFoundException(ResponseStatus.CHAT_ROOM_F004);
+        }
 
-            return new GetChatRoomMembersResponseDto(
-                memberRoom.member.id.toString(), memberRoom.member.nickname, memberRoom.member.profileFile ? memberRoom.member.profileFile.url : null, isManager
-            );
-        });
+        try {
+            const chatRoomMembers = await this.prisma.memberRoom.findMany({
+                where: {
+                    roomId: roomId,
+                },
+                select: {
+                    memberId: true,
+                },
+            });
+
+            const memberIdsInChatRoom = chatRoomMembers.map(memberRoomMember => memberRoomMember.memberId);
+
+            const nonMembers = await this.prisma.member.findMany({
+                where: {
+                    id: {
+                        notIn: memberIdsInChatRoom,
+                    },
+                },
+                select: {
+                    id: true,
+                    nickname: true,
+                    profileFile: {
+                        select: {
+                            url: true,
+                        },
+                    },
+                },
+            });
+
+            return nonMembers.map(member => new GetNonMembersInChatRoomResponseDto(
+                member.id.toString(), member.nickname, member.profileFile ? member.profileFile.url : null
+            ));
+        } catch (error) {
+            throw new BadRequestException("Prisma Error", ResponseStatus.CHAT_ROOM_F001);
+        }
     }
 
     async leaveChatRoom(chatRoomId: bigint, member: Member): Promise<LeaveChatRoomResponseDto> {
