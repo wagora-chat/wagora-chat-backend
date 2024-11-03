@@ -255,12 +255,12 @@ export class ChatRoomController {
                 fileIsRequired: true,
                 validators: [
                     new MaxFileSizeValidator({
-                        // 3mb 까지 업로드 가능
-                        maxSize: 1024 * 1024 * 3,
+                        // 50mb 까지 업로드 가능
+                        maxSize: 1024 * 1024 * 50,
                     }),
                     new FileTypeValidator({
-                        // 확장자는 이미지만 가능
-                        fileType: /image\/(jpeg|jpg|png)$/,
+                        // 확장자는 지정된 형식만 가능
+                        fileType: /\.(zip|html|md|jpeg|jpg|png|mp4|mov)$|image\/(jpeg|jpg|png)$|video\/(mp4|quicktime)$/,
                     }),
                 ],
             }),
