@@ -10,11 +10,19 @@ import {
 import {
     PrismaConfig,
 } from "../../prisma/prisma.config";
+import {
+    FileModule,
+} from "../file/file.module";
 
 @Module({
+    imports: [
+        FileModule,
+    ],
     controllers: [ChatRoomController,],
-    providers: [ChatRoomService,
-        PrismaConfig,],
+    providers: [
+        ChatRoomService,
+        PrismaConfig,
+    ],
 })
 export class ChatRoomModule {
 }

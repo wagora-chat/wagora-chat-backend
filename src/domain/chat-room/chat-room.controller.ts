@@ -1,5 +1,18 @@
 import {
-    Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query, UseGuards,
+    Body,
+    Controller,
+    Delete, FileTypeValidator,
+    Get,
+    HttpCode,
+    HttpStatus,
+    Logger, MaxFileSizeValidator,
+    Param,
+    ParseFilePipe,
+    Patch,
+    Post,
+    Query,
+    UploadedFile,
+    UseGuards, UseInterceptors,
 } from "@nestjs/common";
 import {
     ChatRoomService,
@@ -8,7 +21,7 @@ import {
     CreateChatRoomRequestDto,
 } from "./dto/request/create-chat-room.request.dto";
 import {
-    ApiBearerAuth, ApiOperation, ApiTags,
+    ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags,
 } from "@nestjs/swagger";
 import {
     ApiCustomResponseDecorator,
@@ -54,6 +67,15 @@ import {
 } from "./dto/request/update-chat-room.request.dto";
 import GetChatRoomMembersResponseDto from "./dto/response/get-chat-room-members.response.dto";
 import GetNonMembersInChatRoomResponseDto from "./dto/response/get-non-members-in-chat-room.response.dto";
+import {
+    CreateRoomFileRequestDto,
+} from "./dto/request/create-room-file.request.dto";
+import {
+    CreateRoomFileResponseDto,
+} from "./dto/response/create-room-file.response.dto";
+import {
+    FileInterceptor,
+} from "@nestjs/platform-express";
 
 @ApiTags("ChatRoom")
 @UseGuards(JwtGuard)
@@ -212,5 +234,66 @@ export class ChatRoomController {
         return new CustomResponse(
             ResponseStatus.CHAT_ROOM_S003, result
         );
+    }
+
+    @ApiOperation({
+        summary: "채팅방에 파일 업로드",
+        description: "채팅방 id를 기반으로 채팅방에 파일을 올릴 수 있다.",
+    })
+    @ApiCustomResponseDecorator(CreateRoomFileResponseDto)
+    @UseInterceptors(FileInterceptor("file"))
+    @ApiConsumes("multipart/form-data")
+    @HttpCode(HttpStatus.OK)
+    @Post(":id/files")
+    async createRoomFile(
+        // File이 Swagger에 보이도록 설정해둠
+        @Body() dto: CreateRoomFileRequestDto,
+        @Param("id", BigIntPipe) id: bigint,
+        @GetMember() member: Member,
+        @UploadedFile(
+            new ParseFilePipe({
+                fileIsRequired: true,
+                validators: [
+                    new MaxFileSizeValidator({
+                        // 3mb 까지 업로드 가능
+                        maxSize: 1024 * 1024 * 3,
+                    }),
+                    new FileTypeValidator({
+                        // 확장자는 이미지만 가능
+                        fileType: /image\/(jpeg|jpg|png)$/,
+                    }),
+                ],
+            }),
+        ) file: Express.Multer.File
+    ): Promise<CustomResponse<CreateRoomFileResponseDto>> {
+        this.logger.log("[leaveChatRoom] start");
+        const result = await this.chatRoomService.createRoomFile(id, member, file);
+        this.logger.log("[leaveChatRoom] finish");
+
+        return new CustomResponse(
+            ResponseStatus.CHAT_ROOM_S009, result
+        );
+    }
+
+    @ApiOperation({
+        summary: "채팅방 파일 삭제",
+        description: "채팅방 id를 기반으로 채팅방에 파일을 올릴 수 있다.",
+    })
+    @ApiCustomResponseDecorator(CreateRoomFileResponseDto)
+    @UseInterceptors(FileInterceptor("file"))
+    @ApiConsumes("multipart/form-data")
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @Delete(":id/files/:fileId")
+    async deleteRoomFile(
+        // File이 Swagger에 보이도록 설정해둠
+        @Param("id", BigIntPipe) id: bigint,
+        @Param("fileId", BigIntPipe) fileId: bigint,
+        @GetMember() member: Member,
+    ) {
+        this.logger.log("[leaveChatRoom] start");
+        await this.chatRoomService.deleteRoomFile(id, fileId, member);
+        this.logger.log("[leaveChatRoom] finish");
+
+        return;
     }
 }

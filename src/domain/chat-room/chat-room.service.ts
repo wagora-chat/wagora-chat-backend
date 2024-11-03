@@ -7,6 +7,7 @@ import {
 } from "./dto/request/create-chat-room.request.dto";
 import {
     Member,
+    RoomFile,
     PrismaClient,
 } from "@prisma/client";
 import {
@@ -56,11 +57,24 @@ import {
 } from "./dto/response/update-chat-room.response.dto";
 import GetChatRoomMembersResponseDto from "./dto/response/get-chat-room-members.response.dto";
 import GetNonMembersInChatRoomResponseDto from "./dto/response/get-non-members-in-chat-room.response.dto";
+import {
+    CreateRoomFileResponseDto,
+} from "./dto/response/create-room-file.response.dto";
+import {
+    FileService,
+} from "../file/file.service";
+import {
+    FileNotFoundException,
+} from "../../exception/file-not-found.exception";
+import {
+    FileDeleteFailException,
+} from "../../exception/file-delete-fail-exception";
 
 @Injectable()
 export class ChatRoomService {
     constructor(
-        @Inject(PrismaConfig) private readonly prisma: PrismaClient
+        @Inject(PrismaConfig) private readonly prisma: PrismaClient,
+        private readonly fileService: FileService
     ) {
     }
 
@@ -420,5 +434,74 @@ export class ChatRoomService {
         });
 
         return new UpdateChatRoomResponseDto(updateChatRoom.id.toString());
+    }
+
+    async createRoomFile(
+        id: bigint,
+        member: Member,
+        file: Express.Multer.File,
+    ): Promise<CreateRoomFileResponseDto> {
+        const chatRoom = await this.prisma.chatRoom.findUnique({
+            where: {
+                id: id,
+            },
+            include: {
+                MemberRoom: true,
+            },
+        });
+        if (!chatRoom) {
+            throw new ChatRoomNotFoundException(ResponseStatus.CHAT_ROOM_F004);
+        }
+
+        const existInRoom = chatRoom.MemberRoom.some(mr => mr.memberId === member.id);
+        if (!existInRoom) {
+            throw new ChatRoomNotIncludeMemberException(ResponseStatus.CHAT_ROOM_F009);
+        }
+
+        const fileId = await this.fileService.roomFileUpload(id, file);
+        const roomFile: RoomFile = {
+            roomId: id,
+            fileId: fileId,
+        };
+
+        const savedRoomFile = await this.prisma.roomFile.create({
+            data: roomFile,
+        });
+
+        return {
+            id: savedRoomFile.fileId.toString(),
+        };
+    }
+
+    async deleteRoomFile(
+        id: bigint,
+        fileId: bigint,
+        member: Member,
+    ) {
+        const chatRoom = await this.prisma.chatRoom.findUnique({
+            where: {
+                id: id,
+            },
+            include: {
+                MemberRoom: true,
+                RoomFile: true,
+            },
+        });
+        if (!chatRoom) {
+            throw new ChatRoomNotFoundException(ResponseStatus.CHAT_ROOM_F004);
+        }
+
+        const existInRoom = chatRoom.MemberRoom.some(mr => mr.memberId === member.id);
+        if (!existInRoom) {
+            throw new ChatRoomNotIncludeMemberException(ResponseStatus.CHAT_ROOM_F009);
+        }
+
+        const isDelete = await this.fileService.fileDelete(fileId);
+        if (!isDelete) {
+            throw new FileDeleteFailException(ResponseStatus.FILE_F001);
+        }
+
+        return;
+
     }
 }

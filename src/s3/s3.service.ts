@@ -46,15 +46,39 @@ export class S3Service {
         });
         await this.s3Client.send(command);
 
-        return filePath;
+        return {
+            filePath,
+            fileKey,
+        };
     }
 
-    public async deleteProfileFile(file: File) {
+    public async saveRoomFile(roomId: bigint, file: Express.Multer.File) {
+        const strings = file.originalname.split(".");
+        const ext = strings[strings.length - 1];
+        const fileId = uuidFunction.v4();
+        const fileKey = `${this.configService.get("AWS_BUCKET_KEY_ENV")}/rooms/${roomId.toString()}/${fileId}`;
+        const filePath = `https://s3.${this.configService.get("AWS_REGION")}.amazonaws.com/${this.configService.get("AWS_BUCKET_NAME")}/${fileKey}`;
+
+        const command = new PutObjectCommand({
+            Bucket: this.configService.get("AWS_BUCKET_NAME"), // S3 버킷 이름
+            Key: fileKey, // 업로드될 파일의 이름
+            Body: file.buffer, // 업로드할 파일
+            ACL: "public-read", // 파일 접근 권한
+            ContentType: `image/${ext}`, // 파일 타입
+        });
+        await this.s3Client.send(command);
+
+        return {
+            filePath,
+            fileKey,
+        };
+    }
+
+    public async deleteFile(file: File) {
         try {
-            const fileId = file.url.split("/")[-1];
             const input = {
                 Bucket: this.configService.get("AWS_BUCKET_NAME"),
-                Key: fileId,
+                Key: file.fileKey,
             };
             const command = new DeleteObjectCommand(input);
             await this.s3Client.send(command);
