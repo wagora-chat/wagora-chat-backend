@@ -158,7 +158,7 @@ describe("ChatRoom Test (e2e)", () => {
                 // when
                 const response = await request(app.getHttpServer())
                     .get("/members")
-                    .expect(HttpStatus.FORBIDDEN);
+                    .expect(HttpStatus.UNAUTHORIZED);
 
                 // then
                 const actual = response.body as CustomResponse<ErrorDataDto>;

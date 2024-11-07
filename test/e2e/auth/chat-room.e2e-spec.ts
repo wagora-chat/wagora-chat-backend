@@ -175,7 +175,7 @@ describe("ChatRoom Test (e2e)", () => {
                 const response = await request(app.getHttpServer())
                     .post("/chat-rooms")
                     .send(requestBodyDto)
-                    .expect(HttpStatus.FORBIDDEN);
+                    .expect(HttpStatus.UNAUTHORIZED);
 
                 // then
                 const actual = response.body as CustomResponse<ErrorDataDto>;
@@ -203,7 +203,7 @@ describe("ChatRoom Test (e2e)", () => {
                     .post("/chat-rooms")
                     .send(requestBodyDto)
                     .set("Authorization", `Bearer ${token}`)
-                    .expect(HttpStatus.FORBIDDEN);
+                    .expect(HttpStatus.UNAUTHORIZED);
 
                 // then
                 const actual = response.body as CustomResponse<ErrorDataDto>;
@@ -631,7 +631,7 @@ describe("ChatRoom Test (e2e)", () => {
                         .send({
                             id: Number(memberIds[1]),
                         })
-                        .expect(HttpStatus.FORBIDDEN);
+                        .expect(HttpStatus.UNAUTHORIZED);
 
                     // then
                     const actual = response.body as CustomResponse<ErrorDataDto>;
@@ -700,7 +700,7 @@ describe("ChatRoom Test (e2e)", () => {
                     .patch(`/chat-rooms/${storedChatRoom.id.toString()}`)
                     .send(updateRequestDto)
                     .set("Authorization", `Bearer ${token}`)
-                    .expect(HttpStatus.FORBIDDEN);
+                    .expect(HttpStatus.UNAUTHORIZED);
 
                 // then
                 const actual = response.body as CustomResponse<ErrorDataDto>;
@@ -825,7 +825,7 @@ describe("ChatRoom Test (e2e)", () => {
 
                 const response = await request(app.getHttpServer())
                     .get(`/chat-rooms/${storedChatRoom.id.toString()}/non-members`)
-                    .expect(HttpStatus.FORBIDDEN);
+                    .expect(HttpStatus.UNAUTHORIZED);
 
                 const actual = response.body as CustomResponse<ErrorDataDto>;
                 expect(actual.customStatus).toStrictEqual(ResponseStatus.AUTH_F005);
