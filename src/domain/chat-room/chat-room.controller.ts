@@ -1,5 +1,5 @@
 import {
-    Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Post, Query, UseGuards,
+    Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query, UseGuards,
 } from "@nestjs/common";
 import {
     ChatRoomService,
@@ -44,6 +44,16 @@ import {
 import {
     InviteChatRoomRequestDto,
 } from "./dto/request/invite-chat-room.request.dto";
+import DelegateAdminResponseDto from "./dto/response/delegate-admin.response.dto";
+import DelegateAdminRequestDto from "./dto/request/delegate-admin.request.dto";
+import {
+    UpdateChatRoomResponseDto,
+} from "./dto/response/update-chat-room.response.dto";
+import {
+    UpdateChatRoomRequestDto,
+} from "./dto/request/update-chat-room.request.dto";
+import GetChatRoomMembersResponseDto from "./dto/response/get-chat-room-members.response.dto";
+import GetNonMembersInChatRoomResponseDto from "./dto/response/get-non-members-in-chat-room.response.dto";
 
 @ApiTags("ChatRoom")
 @UseGuards(JwtGuard)
@@ -118,6 +128,76 @@ export class ChatRoomController {
     }
 
     @ApiOperation({
+        summary: "채팅방 내에 속한 회원 조회 API",
+        description: "채팅방 내에 속한 회원들을 조회한다.",
+    })
+    @ApiCustomResponseDecorator(GetChatRoomMembersResponseDto)
+    @Get("/:id/members")
+    async getChatRoomMembers(
+        @Param("id", BigIntPipe) chatRoomId: bigint) {
+        this.logger.log("[getChatRoomMembers] start");
+        const result = await this.chatRoomService.getChatRoomMembers(chatRoomId);
+        this.logger.log("[getChatRoomMembers] finish");
+
+        return new CustomResponse(
+            ResponseStatus.CHAT_ROOM_S007, result
+        );
+    }
+
+    @ApiOperation({
+        summary: "채팅방에 속하지 않은 회원 조회 API",
+        description: "채팅방 초대 시, 채팅방에 속하지 않은 회원만 조회한다.",
+    })
+    @ApiCustomResponseDecorator(GetNonMembersInChatRoomResponseDto)
+    @Get("/:id/non-members")
+    async getNonMembersInChatRoom(@Param("id", BigIntPipe) chatRoomId: bigint) {
+        this.logger.log("[getNonMembersInChatRoom] start");
+        const result = await this.chatRoomService.getNonMembersInChatRoom(chatRoomId);
+        this.logger.log("[getNonMembersInChatRoom] finish");
+
+        return new CustomResponse(
+            ResponseStatus.CHAT_ROOM_S008, result
+        );
+
+    }
+
+    @ApiOperation({
+        summary: "채팅방 수정 API",
+        description: "채팅방 이름과 색깔을 수정한다.",
+    })
+    @ApiCustomResponseDecorator(UpdateChatRoomResponseDto)
+    @Patch("/:id")
+    async updateChatRoom(@Body() requestDto: UpdateChatRoomRequestDto,
+                         @Param("id", BigIntPipe) chatRoomId: bigint,
+                         @GetMember() member: Member) {
+        this.logger.log("[updateChatRoom] start");
+        const result = await this.chatRoomService.updateChatRoom(requestDto, chatRoomId, BigInt(member.id));
+        this.logger.log("[updateChatRoom] finish");
+
+        return new CustomResponse(
+            ResponseStatus.CHAT_ROOM_S006, result
+        );
+    }
+
+    @ApiOperation({
+        summary: "채팅방 관리자 권한 위임 API",
+        description: "채팅방 id를 기반으로 관리자가 관리자 권한을 위임할 수 있다.",
+    })
+    @ApiCustomResponseDecorator(DelegateAdminResponseDto)
+    @Patch(":id/delegate")
+    async delegateAdminChatRoom(@Body() requestDto: DelegateAdminRequestDto,
+                                @GetMember() member: Member,
+                                @Param("id", BigIntPipe) id: bigint,) {
+        this.logger.log("[delegateAdminChatRoom] start");
+        const result = await this.chatRoomService.delegateAdmin(requestDto, member.id, id);
+        this.logger.log("[delegateAdminChatRoom] finish");
+
+        return new CustomResponse(
+            ResponseStatus.CHAT_ROOM_S005, result
+        );
+    }
+
+    @ApiOperation({
         summary: "채팅방 나가기, 삭제 API",
         description: "채팅방 id를 기반으로 본인이 채팅방에서 나갈 수 있다.",
     })
@@ -133,5 +213,4 @@ export class ChatRoomController {
             ResponseStatus.CHAT_ROOM_S003, result
         );
     }
-
 }

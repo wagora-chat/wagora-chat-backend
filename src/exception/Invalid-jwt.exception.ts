@@ -1,11 +1,11 @@
 import {
-    ForbiddenException,
-} from "./http/forbidden.exception";
-import {
     ResponseStatusType,
 } from "../response/response-status";
+import {
+    UnauthorizedException,
+} from "./http/unauthorized.exception";
 
-export default class InvalidJwtException extends ForbiddenException {
+export default class InvalidJwtException extends UnauthorizedException {
     constructor(errorCode : ResponseStatusType) {
         super("Invalid JWT", errorCode);
     }

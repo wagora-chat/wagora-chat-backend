@@ -25,6 +25,7 @@ import {
     ChatRoomModule,
 } from "./domain/chat-room/chat-room.module";
 import ChatModule from "./domain/chat/chat.module";
+import MemberModule from "./domain/member/member.module";
 
 @Module({
     imports: [
@@ -35,6 +36,7 @@ import ChatModule from "./domain/chat/chat.module";
         FileModule,
         S3Module,
         AuthModule,
+        MemberModule,
         PrismaModule,
         ChatRoomModule,
         ChatModule,

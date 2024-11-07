@@ -1,17 +1,16 @@
 export const chatRoomFixture = (name: string, managerId: bigint, ids: bigint[]) => {
+
+    const uniqueMemberIds = Array.from(new Set([managerId,
+        ...ids,]));
+
     return {
         name: name,
         color: "Red",
         managerId: managerId,
         MemberRoom: {
-            create: [
-                {
-                    memberId: managerId,
-                },
-                ...ids.map((id) => ({
-                    memberId: id,
-                })),
-            ],
+            create: uniqueMemberIds.map(id => ({
+                memberId: id,
+            })),
         },
     };
 };
